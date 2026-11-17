@@ -1,0 +1,22 @@
+[Unit]
+Description=DaoBrain dashboard reverse SSH tunnel (backup -> primary 127.0.0.1:18020)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/ssh -N \
+  -i /root/.ssh/daobrain_tunnel \
+  -o UserKnownHostsFile=/root/.ssh/known_hosts.daobrain \
+  -o StrictHostKeyChecking=yes \
+  -o BatchMode=yes \
+  -o ConnectTimeout=15 \
+  -o ServerAliveInterval=20 -o ServerAliveCountMax=6 \
+  -o ExitOnForwardFailure=yes \
+  -R 127.0.0.1:18020:127.0.0.1:8020 \
+  admin@39.102.49.1
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
