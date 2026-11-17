@@ -1,0 +1,123 @@
+# NON-DEPLOYABLE reference: only scripts/deploy_portable.py implements supported
+# plan/check/apply roles and preflight. This preview deliberately has NO ports
+# and NO standalone/frontend/backend/local-node deployment profiles. Selecting
+# reference-only starts isolated simulators, NOT a host-accessible deployment.
+# Docker 26 internal-only + published ports is explicitly NOT an accepted path.
+# The launcher instead uses an ordinary app bridge with IPv4 loopback binds and
+# a separate internal model bridge. Loopback binds are NOT an egress firewall.
+# Private TLS, origin/Host-preserving ingress and VM UID mapping are provisioned
+# outside this template; neither this file nor the launcher configures the host.
+name: daobrain-portable-reference-unaccepted
+
+x-app: &app
+  image: daobrain-app:dev
+  pull_policy: never
+  profiles: [reference-only]
+  read_only: true
+  # Preview identity only; launcher derives/checks numeric owners per role.
+  user: "10001:10001"
+  working_dir: /app
+  restart: "no"
+  cap_drop: [ALL]
+  security_opt: ["no-new-privileges:true"]
+  tmpfs: ["/tmp:rw,noexec,nosuid,size=16m"]
+  volumes:
+    - &source
+      type: bind
+      source: ${SOURCE:?existing absolute source directory required}
+      target: /app
+      read_only: true
+      bind: {create_host_path: false}
+  networks: [preview_private]
+  logging:
+    driver: json-file
+    options: {max-size: "5m", max-file: "2"}
+
+x-app-env: &app-env
+  APP_ORIGIN: ${APP_ORIGIN:?explicit canonical application origin required}
+  QA_ORIGIN: ${APP_ORIGIN:?explicit canonical application origin required}
+  HOME: /tmp
+  PYTHONDONTWRITEBYTECODE: "1"
+  PYTHONUNBUFFERED: "1"
+  APP_PAYMENT_MODE: disabled
+  APP_NODE_ENDPOINTS: "{}"
+  EXTERNAL_MODEL_MODE: disabled
+  EXTERNAL_MODEL_BASE_URL: ""
+  EXTERNAL_MODEL_API_KEY: ""
+  ALLOW_EXTERNAL_STUB: "false"
+  LOCAL_MODEL_BACKEND: disabled
+  QA_OLLAMA_URL: ""
+
+services:
+  frontend:
+    <<: *app
+    command: [uvicorn, "portable_frontend.main:app", --workers, "1", --host, "0.0.0.0", --port, "8000", --no-proxy-headers]
+    environment:
+      <<: *app-env
+      APP_BACKEND_URL: http://backend:8000
+    mem_limit: 64m
+    memswap_limit: 64m
+    cpus: 0.25
+
+  backend:
+    <<: *app
+    command: [uvicorn, "application_hub.main:app", --workers, "1", --host, "0.0.0.0", --port, "8000", --no-proxy-headers]
+    volumes:
+      - *source
+      - type: bind
+        source: ${DATA:?existing absolute persistent data directory required}
+        target: /data
+        read_only: false
+        bind: {create_host_path: false}
+    environment:
+      <<: *app-env
+      APP_DB_PATH: /data/application.sqlite3
+      # QA remains disabled in this unaccepted preview. Only the launcher's
+      # enabled-model plan wires the actual /api/ask -> public_qa runner path.
+    mem_limit: 64m
+    memswap_limit: 64m
+    cpus: 0.5
+
+  # Local-node identity, owner-only secrets and its private TLS endpoint cannot
+  # be verified by a static template. It is launcher-only, not a preview service.
+  # Even selecting both preview profiles below totals only 896 MiB RAM+swap.
+  ollama:
+    image: ollama/ollama:0.5.4
+    pull_policy: never
+    profiles: [reference-model-only]
+    command: [serve]
+    user: "10001:10001"
+    read_only: true
+    restart: "no"
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    tmpfs: ["/tmp:rw,noexec,nosuid,size=16m"]
+    environment:
+      HOME: /tmp
+      OLLAMA_HOST: "0.0.0.0:11434"
+      OLLAMA_MODELS: /models/models
+      OLLAMA_NOPRUNE: "true"
+      OLLAMA_NUM_PARALLEL: "1"
+      OLLAMA_MAX_LOADED_MODELS: "1"
+      OLLAMA_MAX_QUEUE: "1"
+      OLLAMA_CONTEXT_LENGTH: "1024"
+    volumes:
+      - type: volume
+        source: daobrain_ollama
+        target: /models
+        read_only: true
+        volume: {nocopy: true}
+    networks:
+      model_private: {aliases: [qa_ollama]}
+    mem_limit: 512m
+    memswap_limit: 768m
+    cpus: 0.75
+    logging:
+      driver: json-file
+      options: {max-size: "5m", max-file: "2"}
+
+networks:
+  preview_private: {driver: bridge, internal: true}
+  model_private: {driver: bridge, internal: true}
+volumes:
+  daobrain_ollama: {external: true, name: daobrain_ollama}

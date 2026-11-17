@@ -1,0 +1,20 @@
+services:
+  public_demo:
+    image: daobrain-demo:dev
+    command: [uvicorn, public_demo.main:app, --host, "0.0.0.0", --port, "18100", --no-access-log]
+    environment:
+      API_KEY: ${API_KEY:?请先生成入口密钥}
+      PUBLIC_DEMO_BACKEND: ${PUBLIC_DEMO_BACKEND:-external_stub}
+      PUBLIC_DEMO_MODEL_NAME: ${PUBLIC_DEMO_MODEL_NAME:-qwen2.5:0.5b}
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 128m
+    cpus: 0.5
+    logging:
+      driver: json-file
+      options: {max-size: "5m", max-file: "2"}
+    networks: [green]

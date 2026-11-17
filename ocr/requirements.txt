@@ -1,0 +1,5 @@
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+# 接入阶段再放开（依赖较重）：
+# paddlepaddle==3.0.0
+# paddleocr==2.8.1

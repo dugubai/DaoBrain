@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>汉唐医道 · 典籍模拟实验室</title>
+  <style>
+    :root { color-scheme: light; --ink: #172c29; --muted: #4c625b; --green: #185647; --line: #d6e0d9; --paper: #fcfcf7; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #f0f3ed; color: var(--ink); font-family: system-ui, -apple-system, "PingFang SC", sans-serif; line-height: 1.7; }
+    main { max-width: 1000px; margin: 0 auto; padding: 34px 24px 50px; }
+    header { margin-bottom: 24px; }
+    .eyebrow { font-size: .8rem; font-weight: 700; letter-spacing: .15em; color: var(--green); }
+    h1 { margin: 8px 0; font-size: clamp(1.8rem, 5vw, 2.9rem); letter-spacing: -.03em; line-height: 1.3; }
+    h2 { margin: 0 0 16px; font-size: 1.25rem; }
+    h3 { margin: 0 0 8px; font-size: 1rem; }
+    p { margin: 8px 0; }
+    .subtitle, .hint { color: var(--muted); }
+    .hint { font-size: .88rem; }
+    .badge { display: inline-block; border: 1px solid #b8d1c3; border-radius: 20px; padding: 4px 12px; background: #e6efe7; color: #204e3e; font-size: .8rem; font-weight: 700; }
+    .warning { background: #fff5d9; color: #604616; border: 1px solid #e7d19a; border-radius: 12px; padding: 14px 18px; margin-bottom: 22px; }
+    .panel { background: var(--paper); border: 1px solid var(--line); border-radius: 16px; padding: 24px; margin-bottom: 20px; box-shadow: 0 4px 20px #173c2906; }
+    .row { display: grid; grid-template-columns: 1fr 160px; gap: 18px; }
+    label { display: block; font-weight: 650; margin-bottom: 7px; }
+    input, textarea, select { width: 100%; font: inherit; color: var(--ink); padding: 11px 13px; border: 1px solid #aabbaf; border-radius: 8px; background: white; }
+    textarea { min-height: 130px; resize: vertical; }
+    input:focus-visible, textarea:focus-visible, select:focus-visible, button:focus-visible { outline: 3px solid #3b8673; outline-offset: 3px; }
+    .field { margin-bottom: 18px; }
+    button { font: inherit; font-weight: 650; cursor: pointer; border: 1px solid var(--green); border-radius: 8px; padding: 10px 18px; }
+    .primary { background: var(--green); color: white; }
+    .primary:hover { background: #103f35; }
+    button:disabled { cursor: wait; opacity: .6; }
+    .examples { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 18px; }
+    .example { font-size: .85rem; background: #edf3ed; color: var(--green); padding: 5px 12px; border-color: var(--line); }
+    .submit-row { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+    #request-status { color: var(--muted); overflow-wrap: anywhere; }
+    #answer-text, #result-note, .source p, .source dd, .verification li { white-space: pre-wrap; overflow-wrap: anywhere; }
+    #answer-text { background: #f0f5ee; border-left: 3px solid #6f9b7f; padding: 16px 18px; }
+    .metadata { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin: 22px 0; }
+    dl { margin: 0; }
+    dt { color: var(--muted); font-size: .85rem; margin-top: 7px; }
+    dd { margin: 0; overflow-wrap: anywhere; }
+    .source { border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-top: 12px; }
+    .source dl { display: grid; grid-template-columns: 80px minmax(0, 1fr); gap: 4px 12px; font-size: .9rem; }
+    .source dt { margin: 0; }
+    .source .quote { margin: 12px 0; padding-left: 12px; border-left: 2px solid var(--line); }
+    .verification ul { padding-left: 20px; }
+    footer { font-size: .85rem; color: var(--muted); }
+    [hidden] { display: none !important; }
+    @media (max-width: 600px) { main { padding: 22px 14px 34px; } .panel { padding: 18px; } .row, .metadata { grid-template-columns: 1fr; gap: 0; } .metadata > div { margin-bottom: 18px; } }
+    @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto; } }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div class="eyebrow">DAOBRAIN / CLASSICAL TEXT LAB</div>
+      <h1>汉唐医道 · 典籍实验室</h1>
+      <p class="subtitle">检索公开短篇样本，观察回答、出处与验证流程。</p>
+      <span class="badge">SIMULATED ONLY · 仅模拟</span>
+    </header>
+    <aside class="warning" aria-label="使用限制">
+      <strong>禁止用于临床诊断、处方或治疗决策。</strong>
+      此页面仅演示模拟流程与公开典籍样本；不代表真实模型能力、完整知识库、影像 OCR 或医学准确性。验证通过也不是临床认证。
+    </aside>
+    <section class="panel" aria-labelledby="query-heading">
+      <h2 id="query-heading">公开典籍查询</h2>
+      <form id="query-form">
+        <div class="row">
+          <div class="field">
+            <label for="api-key">入口 API 密钥</label>
+            <input id="api-key" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" required maxlength="512" aria-describedby="key-hint">
+            <p class="hint" id="key-hint">仅在当前页面内存中使用，以请求头发送给同源入口；不会写入浏览器存储。请在可信本地环境或 HTTPS 下使用。</p>
+          </div>
+          <div class="field">
+            <label for="top-k">最多参考来源</label>
+            <select id="top-k"><option value="2">2 条</option><option value="4" selected>4 条</option><option value="8">8 条</option></select>
+          </div>
+        </div>
+        <label for="query">想查阅的典籍内容</label>
+        <textarea id="query" name="query" maxlength="2000" required placeholder="例如：法于阴阳，和于术数" aria-describedby="query-hint"></textarea>
+        <p class="hint" id="query-hint">仅提交公开文化问题，不要输入个人健康信息、内部资料或秘密。绿区标记不是授权凭证。</p>
+        <div class="examples" aria-label="填入示例问题">
+          <button class="example" type="button" data-query="法于阴阳，和于术数">法于阴阳</button>
+          <button class="example" type="button" data-query="恬淡虚无，真气从之">恬淡虚无</button>
+        </div>
+        <div class="submit-row">
+          <button class="primary" type="submit" id="submit-button">查询公开样本</button>
+          <span id="request-status" role="status" aria-live="polite">就绪 · 同源 /v1/query</span>
+        </div>
+      </form>
+    </section>
+    <section class="panel" id="result" aria-labelledby="result-heading" hidden>
+      <h2 id="result-heading" tabindex="-1">查询结果 <span class="badge" id="result-badge">模拟结果</span></h2>
+      <div id="answer-text"></div>
+      <p class="hint" id="result-note"></p>
+      <div class="metadata">
+        <div><h3>执行信息</h3><dl id="execution-info"></dl></div>
+        <div class="verification"><h3>验证信息（非临床认证）</h3><dl id="verification-info"></dl><ul id="verification-reasons"></ul></div>
+      </div>
+      <h3>回答附带的出处</h3>
+      <p class="hint">以下为服务返回的版本和内容哈希，不是页面独立核验的证据。</p>
+      <div id="sources"></div>
+    </section>
+    <noscript><p class="warning">请启用 JavaScript 以提交同源查询。</p></noscript>
+    <footer>单页模拟门户 · 无外部依赖 · 不提供语料上传或临床服务</footer>
+  </main>
+  <script>
+    "use strict";
+    const form = document.getElementById("query-form");
+    const status = document.getElementById("request-status");
+    const submitButton = document.getElementById("submit-button");
+    const result = document.getElementById("result");
+    const asText = (value, fallback = "未提供") => typeof value === "string" && value ? value : fallback;
+    const yesNo = value => value === true ? "是" : value === false ? "否" : "未提供";
+
+    function addDetail(container, label, value) {
+      const term = document.createElement("dt");
+      const description = document.createElement("dd");
+      term.textContent = label;
+      description.textContent = value;
+      container.append(term, description);
+    }
+
+    function renderResponse(data) {
+      document.getElementById("answer-text").textContent = asText(data.answer, data.refused === true ? "请求已拒绝；未提供回答。" : "未提供回答。");
+      document.getElementById("result-note").textContent = asText(data.note, "仅作模拟文化参考，不可用于临床。");
+      document.getElementById("result-badge").textContent = data.simulated === true ? "模拟结果 · 非临床" : "模拟门户 · 服务未确认模拟标记";
+      const execution = document.getElementById("execution-info");
+      execution.replaceChildren();
+      addDetail(execution, "任务", asText(data.task_id));
+      addDetail(execution, "模型（服务标签）", asText(data.model));
+      addDetail(execution, "拒绝输出", yesNo(data.refused));
+      addDetail(execution, "服务模拟标记", yesNo(data.simulated));
+      const verification = data.verification && typeof data.verification === "object" ? data.verification : {};
+      const verificationInfo = document.getElementById("verification-info");
+      verificationInfo.replaceChildren();
+      addDetail(verificationInfo, "状态", asText(verification.status));
+      addDetail(verificationInfo, "出处检查", yesNo(verification.provenance_ok));
+      addDetail(verificationInfo, "合规检查", yesNo(verification.compliance_ok));
+      const reasons = document.getElementById("verification-reasons");
+      reasons.replaceChildren();
+      if (Array.isArray(verification.reasons)) {
+        for (const reason of verification.reasons.slice(0, 20)) {
+          const item = document.createElement("li");
+          item.textContent = asText(reason);
+          reasons.appendChild(item);
+        }
+      }
+      const sources = document.getElementById("sources");
+      sources.replaceChildren();
+      const evidence = Array.isArray(data.evidence) ? data.evidence.slice(0, 20) : [];
+      if (!evidence.length) {
+        const empty = document.createElement("p");
+        empty.textContent = "无附带来源；不要把无出处内容当成已核验事实。";
+        sources.appendChild(empty);
+      }
+      for (const source of evidence) {
+        const provenance = source && typeof source === "object" ? source : {};
+        const card = document.createElement("article");
+        card.className = "source";
+        const title = document.createElement("h3");
+        title.textContent = asText(provenance.title, "未命名来源");
+        const quote = document.createElement("p");
+        quote.className = "quote";
+        quote.textContent = asText(provenance.quote, "未提供引文");
+        const details = document.createElement("dl");
+        addDetail(details, "来源 ID", asText(provenance.source_id));
+        addDetail(details, "位置", asText(provenance.locator));
+        addDetail(details, "类型", asText(provenance.source_type));
+        addDetail(details, "版本", asText(provenance.version));
+        addDetail(details, "内容哈希", asText(provenance.content_hash));
+        card.append(title, quote, details);
+        sources.appendChild(card);
+      }
+      result.hidden = false;
+      document.getElementById("result-heading").focus();
+    }
+
+    for (const button of document.querySelectorAll("[data-query]")) {
+      button.addEventListener("click", () => {
+        const query = document.getElementById("query");
+        query.value = button.dataset.query;
+        query.focus();
+      });
+    }
+
+    form.addEventListener("submit", async event => {
+      event.preventDefault();
+      if (submitButton.disabled) return;
+      if (!form.reportValidity()) return;
+      const queryInput = document.getElementById("query");
+      const query = queryInput.value.trim();
+      if (!query) { status.textContent = "请输入非空查询。"; queryInput.focus(); return; }
+      const apiKey = document.getElementById("api-key").value;
+      submitButton.disabled = true;
+      form.setAttribute("aria-busy", "true");
+      result.hidden = true;
+      status.textContent = "正在查询模拟服务…";
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 60000);
+      try {
+        const response = await fetch("/v1/query", {
+          method: "POST",
+          credentials: "omit",
+          cache: "no-store",
+          redirect: "error",
+          headers: { "Content-Type": "application/json", "X-API-Key": apiKey },
+          body: JSON.stringify({ query, top_k: Number(document.getElementById("top-k").value), zone: "green" }),
+          signal: controller.signal
+        });
+        if (!response.ok) {
+          const messages = { 401: "鉴权失败，请检查入口密钥。", 403: "服务拒绝此请求。", 422: "查询格式不符合要求。", 429: "请求过于频繁，请稍后重试。", 503: "服务未配置或暂不可用。" };
+          status.textContent = messages[response.status] || "模拟服务请求失败（HTTP " + response.status + "）。";
+          return;
+        }
+        const data = await response.json();
+        if (!data || typeof data !== "object" || Array.isArray(data)) throw new Error("Invalid response");
+        renderResponse(data);
+        status.textContent = "查询完成 · 仅供模拟演示";
+      } catch (error) {
+        status.textContent = error.name === "AbortError" ? "请求超时，可稍后重试。" : "无法读取模拟服务；请确认通过入口服务打开此页面。";
+      } finally {
+        clearTimeout(timeout);
+        submitButton.disabled = false;
+        form.removeAttribute("aria-busy");
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+# 39.102.49.1：2核/约1.8GiB内存；只运行0.5B量化CPU模型，绝不请求GPU。
+# 需要Docker Compose支持!reset/!override（部署前docker compose config核验）。
+# 使用：docker compose -f docker-compose.yml -f public_demo/compose.yml -f compose.cpu.yml --profile model up -d
+# 模型预下载必须先用download profile，退出下载容器后才启动隔离的运行服务。
+x-cpu-model-env: &cpu-model-env
+  LOCAL_MODEL_BACKEND: ollama
+  LOCAL_MODEL_NAME: qwen2.5:0.5b
+  MODEL_OUTPUT_PROTOCOL: select
+  MODEL_CONTEXT_TOKENS: "1024"
+  MODEL_CPU_THREADS: "2"
+  MODEL_MAX_OUTPUT_TOKENS: "96"
+  MODEL_TIMEOUT_SECONDS: "120"
+  GATEWAY_GREEN_BACKEND: local_ollama
+
+services:
+  gateway:
+    environment: *cpu-model-env
+  hybrid_iface:
+    environment: *cpu-model-env
+  local_model:
+    environment: *cpu-model-env
+  public_demo:
+    environment:
+      PUBLIC_DEMO_BACKEND: local_ollama
+      PUBLIC_DEMO_MODEL_NAME: qwen2.5:0.5b
+  ollama:
+    # 删除基线GPU设备预留；不改变原业务内网、不公开11434端口。
+    deploy: !reset {}
+    environment:
+      OLLAMA_NUM_PARALLEL: "1"
+      OLLAMA_MAX_LOADED_MODELS: "1"
+      OLLAMA_MAX_QUEUE: "1"
+      # 分层下载完成前清单尚未安装，禁止运行器启动时清理未引用blob。
+      OLLAMA_NOPRUNE: "true"
+      OLLAMA_KEEP_ALIVE: "30s"
+      OLLAMA_CONTEXT_LENGTH: "1024"
+    # 宿主vm.swappiness=0；仅在模型cgroup内允许匿名页交换，不改全局设置。
+    # 将驻留上限压到512MiB，为14个应用及现有站点留下内存。
+    mem_limit: 512m
+    memswap_limit: 1280m
+    mem_swappiness: 100
+    cpus: 1.5
+    restart: unless-stopped
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    logging:
+      driver: json-file
+      options: {max-size: "5m", max-file: "2"}
+  model_download:
+    environment:
+      LOCAL_MODEL_NAME: qwen2.5:0.5b
+    mem_limit: 384m
+    memswap_limit: 512m
+    cpus: 0.5

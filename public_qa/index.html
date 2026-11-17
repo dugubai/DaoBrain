@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>经典文化问答 · 独立审阅入口</title>
+<style>
+:root { color-scheme: light; font-family: system-ui, sans-serif; color: #242c31; background: #f5f3ee; }
+* { box-sizing: border-box; }
+body { max-width: 1180px; margin: 0 auto; padding: 32px 22px 48px; }
+header { border-bottom: 1px solid #d6d8cf; padding-bottom: 20px; }
+h1 { font-size: clamp(1.5rem, 4vw, 2.2rem); margin: 8px 0 12px; }
+h2 { font-size: 1.12rem; margin-top: 0; }
+p { line-height: 1.8; }
+.eyebrow { font-size: .8rem; letter-spacing: .12em; color: #45604e; }
+.notice { background: #e9eee4; border-left: 3px solid #577459; padding: 12px 16px; }
+form { margin: 24px 0; }
+label { display: block; font-weight: 650; margin-bottom: 9px; }
+textarea { width: 100%; min-height: 120px; resize: vertical; padding: 14px; border: 1px solid #a6b1a4; border-radius: 8px; background: #fff; color: inherit; font: inherit; }
+textarea:focus, button:focus-visible { outline: 3px solid #829d85; outline-offset: 3px; }
+.examples { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+button { font: inherit; cursor: pointer; border: 1px solid #bdc8b8; border-radius: 6px; padding: 9px 13px; background: #fff; color: #304d36; }
+button[type="submit"] { background: #365a40; color: #fff; border-color: #365a40; padding: 11px 23px; }
+button:disabled { opacity: .6; cursor: wait; }
+.hint, .meta { font-size: .87rem; color: #596460; }
+#status { min-height: 28px; line-height: 1.7; }
+.grid { display: grid; grid-template-columns: 1.15fr 1fr 1fr; gap: 16px; }
+.panel { padding: 20px; background: #fff; border: 1px solid #dde1d7; border-radius: 8px; min-width: 0; }
+.source { border-top: 1px solid #e1e6dc; margin-top: 16px; padding-top: 16px; }
+.prose { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.9; }
+blockquote { margin: 12px 0; padding-left: 12px; border-left: 2px solid #afbea7; }
+.meta { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.7; }
+footer { margin-top: 28px; border-top: 1px solid #d6d8cf; padding-top: 18px; }
+[hidden] { display: none !important; }
+@media (max-width: 850px) { .grid { grid-template-columns: 1fr; } body { padding: 22px 16px; } }
+</style>
+</head>
+<body>
+<header>
+<div class="eyebrow">PUBLIC CLASSICS / INDEPENDENT REVIEW</div>
+<h1>从经典出发，试着问一个问题</h1>
+<p>自由提问，结合公开经典证据阅读解释。这个独立审阅入口不接入旧摘录接口，不代替专业判断。</p>
+<div class="notice">仅供公开文化学习，不提供诊疗、用药或个体健康建议。请勿输入姓名、联系方式、病历、私人资料、密码或密钥；不提供文件上传。</div>
+</header>
+<main>
+<form id="ask-form" autocomplete="off">
+<label for="question">你想了解什么？</label>
+<textarea id="question" name="question" minlength="2" maxlength="300" required autocomplete="off" spellcheck="false" placeholder="例如：如何理解《学记》中“教学相长”的意思？"></textarea>
+<div class="examples" aria-label="示例问题，只填入输入框">
+<button type="button" data-question="如何理解《学记》中“教学相长”的意思？">教学相长是什么意思？</button>
+<button type="button" data-question="如何理解“食饮有节”的文化含义？">怎样理解食饮有节？</button>
+<button type="button" data-question="“恬淡虚无”和“精神内守”有什么联系？">恬淡虚无与精神内守</button>
+</div>
+<p class="hint">示例仅帮你填写，可以继续编辑。最多 300 字；单次问答，每分钟最多 6 次，不自动重试。问题与回复不写入浏览器持久存储。</p>
+<button id="submit" type="submit">提交文化问题</button>
+</form>
+<p id="status" role="status" aria-live="polite">等待提问。真实推理或独立入口核验失败时不会展示结果。</p>
+<section id="result" hidden aria-label="本次文化问答结果">
+<p id="verification" class="notice"></p>
+<p id="run-meta" class="meta"></p>
+<div class="grid">
+<section class="panel"><h2>解释</h2><p id="answered-question" class="hint prose"></p><div id="explanation" class="prose"></div></section>
+<section class="panel"><h2>典籍原文与出处</h2><p class="hint">原文按规范记录展示，与解释分开。</p><div id="sources"></div></section>
+<section class="panel"><h2>现代编者阅读说明</h2><p class="hint">编者说明不是典籍原文，也不是模型生成的引文。</p><div id="reading-notes"></div></section>
+</div>
+<p id="disclaimer" class="hint prose"></p>
+</section>
+</main>
+<footer class="hint">引用核验 ≠ 全面事实核验。这里只核验引用与当前经典检索记录、结果格式及文化参考范围；解释仍需阅读原典并由人审阅。没有密钥输入、文件上传或浏览器历史保存功能。</footer>
+<script>
+'use strict';
+const form = document.getElementById('ask-form');
+const question = document.getElementById('question');
+const submit = document.getElementById('submit');
+const examples = Array.from(document.querySelectorAll('[data-question]'));
+const status = document.getElementById('status');
+const result = document.getElementById('result');
+function textElement(tag, text, className) {
+  const node = document.createElement(tag);
+  node.textContent = text;
+  if (className) node.className = className;
+  return node;
+}
+function clearResult() {
+  result.hidden = true;
+  for (const id of ['verification', 'run-meta', 'answered-question', 'explanation', 'disclaimer']) {
+    document.getElementById(id).textContent = '';
+  }
+  document.getElementById('sources').replaceChildren();
+  document.getElementById('reading-notes').replaceChildren();
+}
+function render(data) {
+  if (!data || typeof data.explanation !== 'string' || !Array.isArray(data.sources) || !data.sources.length ||
+      !data.check || data.check.citations_ok !== true || data.check.format_ok !== true ||
+      typeof data.model !== 'string' || typeof data.task_id !== 'string' || !data.generation) {
+    throw new Error('unverified');
+  }
+  document.getElementById('answered-question').textContent = data.question;
+  document.getElementById('explanation').textContent = data.explanation;
+  document.getElementById('verification').textContent = '本次引用及格式核验通过；引用核验 ≠ 全面事实核验。核验范围：' + data.check.scope;
+  document.getElementById('run-meta').textContent = '模型：' + data.model + ' · 任务：' + data.task_id + '\n提示 token：' + data.generation.prompt_tokens + ' · 输出 token：' + data.generation.output_tokens;
+  document.getElementById('disclaimer').textContent = data.disclaimer;
+  for (const item of data.sources) {
+    const p = item.provenance;
+    if (!p || typeof p.quote !== 'string' || typeof item.reading_note !== 'string') throw new Error('invalid source');
+    const source = textElement('article', '', 'source');
+    source.append(textElement('h3', '[' + p.source_id + '] ' + p.title));
+    source.append(textElement('p', p.locator, 'hint'));
+    source.append(textElement('blockquote', p.quote, 'prose'));
+    source.append(textElement('p', '来源类型：' + p.source_type + '\n版本：' + p.version + '\n内容摘要：' + p.content_hash, 'meta'));
+    document.getElementById('sources').append(source);
+    const note = textElement('article', '', 'source');
+    note.append(textElement('h3', '[' + p.source_id + '] ' + p.title));
+    note.append(textElement('p', item.reading_note, 'prose'));
+    note.append(textElement('p', '说明类别：' + item.note_kind + '（非典籍原文）', 'hint'));
+    document.getElementById('reading-notes').append(note);
+  }
+  result.hidden = false;
+}
+for (const button of examples) {
+  button.addEventListener('click', () => {
+    question.value = button.dataset.question;
+    question.focus();
+  });
+}
+form.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  if (submit.disabled) return;
+  clearResult();
+  const value = question.value.trim();
+  if (value.length < 2 || value.length > 300) {
+    status.textContent = '请填写 2 到 300 字的公开经典文化问题。';
+    return;
+  }
+  submit.disabled = true;
+  examples.forEach(button => { button.disabled = true; });
+  status.textContent = '正在检索经典并推理，请等待；不会自动重试。';
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 150000);
+  try {
+    const response = await fetch('/api/ask', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question: value }), credentials: 'omit', cache: 'no-store',
+      redirect: 'error', referrerPolicy: 'no-referrer', signal: controller.signal
+    });
+    if (!response.ok) {
+      const messages = {
+        400: '请求格式不正确，未发布结果。', 403: '只接受本站同源请求，未发布结果。',
+        413: '请求过大，未发布结果。', 415: '仅接受 JSON 请求，未发布结果。',
+        422: '问题格式或文化范围不符合要求，请勿输入私人信息或诊疗问题。',
+        429: '已有问答运行或达到每分钟限制，请稍后手动重试。',
+        503: '推理或入口核验未通过，未发布结果；没有模拟或摘录回退。'
+      };
+      status.textContent = messages[response.status] || '请求未完成，未发布结果。';
+      return;
+    }
+    render(await response.json());
+    status.textContent = '本次问答完成，请结合出处人工审阅解释。';
+  } catch (_) {
+    clearResult();
+    status.textContent = '连接中断、等待超时或结果格式异常，未发布结果。后台可能仍在推理，请勿立即重复提交。';
+  } finally {
+    clearTimeout(timeout);
+    submit.disabled = false;
+    examples.forEach(button => { button.disabled = false; });
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+# 构建上下文排除：绝不把密钥/数据/缓存烘进镜像
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+
+# 数据与模型（本地部署阶段单独挂载，不进镜像）
+data/
+models/
+ollama/
+pgdata/
+qdrant_data/
+*.gguf
+*.safetensors
+
+# 前端构建产物 / 依赖
+node_modules/
+portal/dist/
+
+# 编辑器 / 系统 / 日志
+.idea/
+.vscode/
+.DS_Store
+*.log
+
+# Git
+.git/
+.gitignore
+
+# 部署备份和动态站点文件不进入镜像；wheel仅在专用offline构建时显式复制。
+backups/
+*.bak*
+*.before-*.conf
+nginx.locations.active.conf
+*.zip
+*.tar

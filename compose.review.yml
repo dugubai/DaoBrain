@@ -1,0 +1,81 @@
+# 独立审阅配置，不叠加原生产/模拟Compose，不读取.env，不访问红区或数据库。
+# 默认只做离线代码测试；qa profile仅供资源与共存验收之后显式启用。
+name: daobrain-review
+services:
+  tests:
+    image: daobrain-app:dev
+    pull_policy: never
+    working_dir: /app
+    command: ["python", "-m", "pytest", "-q", "-p", "no:cacheprovider", "tests"]
+    network_mode: none
+    read_only: true
+    volumes:
+      - ./:/app:ro
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    environment:
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUNBUFFERED: "1"
+    mem_limit: 192m
+    memswap_limit: 192m
+    cpus: 0.5
+    pids_limit: 64
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+  qa:
+    profiles: [qa]
+    image: daobrain-app:dev
+    pull_policy: never
+    working_dir: /app
+    command: ["uvicorn", "public_qa.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1", "--no-access-log"]
+    read_only: true
+    volumes:
+      - ./:/app:ro
+    tmpfs:
+      - /tmp:size=16m,mode=1777
+    environment:
+      PYTHONDONTWRITEBYTECODE: "1"
+      QA_ORIGIN: http://127.0.0.1:18101
+      QA_OLLAMA_URL: http://qa_ollama:11434
+    networks: [qa_isolated]
+    # 不发布公网端口；需要验收后单独设计HTTPS入口，不改现有Nginx。
+    mem_limit: 128m
+    memswap_limit: 128m
+    cpus: 0.25
+    pids_limit: 64
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+  qa_ollama:
+    profiles: [qa]
+    image: ollama/ollama:0.5.4
+    pull_policy: never
+    read_only: true
+    volumes:
+      - accepted_model:/root/.ollama:ro
+    tmpfs:
+      - /tmp:size=32m,mode=1777
+    environment:
+      OLLAMA_HOST: 0.0.0.0:11434
+      OLLAMA_MAX_LOADED_MODELS: "1"
+      OLLAMA_NUM_PARALLEL: "1"
+      OLLAMA_MAX_QUEUE: "1"
+      OLLAMA_KEEP_ALIVE: "0"
+    networks: [qa_isolated]
+    # 权重约374MiB；384MiB总限额实测反复读盘，独立模型限额改为512MiB。
+    # 启动前仍须检查宿主余量及原服务状态，不可与旧整套服务同时启动。
+    mem_limit: 512m
+    # 此值是内存+swap总额，不是额外swap；未改变宿主机swappiness。
+    memswap_limit: 768m
+    mem_swappiness: 100
+    cpus: 0.75
+    pids_limit: 128
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+networks:
+  qa_isolated:
+    internal: true
+volumes:
+  accepted_model:
+    external: true
+    # 目标VM已核对的现有离线模型卷；只读，不下载、不改动权重。
+    name: daobrain_ollama
