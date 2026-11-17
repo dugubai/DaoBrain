@@ -163,3 +163,23 @@ def qa_detail(event_id):
             "persona, query, zone, channel, route_target, tier, verify, released, outcome, model, "
             "evidence_count, evidence_ids, latency_ms, note, answer FROM qa_events WHERE id = %s", (int(event_id),))
         return rows[0] if rows else None
+
+
+def tier_stats():
+    with _LOCK:
+        conn = _connect()
+        return _fetch(conn,
+            "SELECT COALESCE(tier,'') AS tier, count(*)::int AS total, "
+            "count(*) FILTER (WHERE released)::int AS released, "
+            "count(*) FILTER (WHERE outcome='refuse_verify')::int AS refuse_verify, "
+            "count(*) FILTER (WHERE outcome='refuse_entry')::int AS refuse_entry, "
+            "count(*) FILTER (WHERE outcome='dependency_error')::int AS errors, "
+            "COALESCE(AVG(latency_ms),0)::int AS avg_latency FROM qa_events GROUP BY 1 ORDER BY 2 DESC")
+
+
+def channel_stats():
+    with _LOCK:
+        conn = _connect()
+        return _fetch(conn,
+            "SELECT COALESCE(channel,'') AS channel, COALESCE(zone,'') AS zone, count(*)::int AS n "
+            "FROM qa_events GROUP BY 1,2 ORDER BY 3 DESC")
