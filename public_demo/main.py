@@ -14,7 +14,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 import httpx
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from common.catalog import search, supported_quotes
 from common.schemas import Answer, VerificationResult, Zone
@@ -49,8 +49,8 @@ async def protect(request: Request, call_next):
             size = int(request.headers.get('content-length', '0'))
         except ValueError:
             size = 0
-        if not 0 < size <= 256:
-            return JSONResponse({'detail': '请求必须是短样例编号'}, status_code=413)
+        if not 0 < size <= 4096:
+            return JSONResponse({'detail': '请求体过大或为空'}, status_code=413)
     response = await call_next(request)
     response.headers['Cache-Control'] = 'no-store'
     response.headers['X-Content-Type-Options'] = 'nosniff'
@@ -129,6 +129,93 @@ def demo(payload: DemoInput):
             model=expected_model, trace=expected_trace, refused=False, simulated=True)
     except (httpx.HTTPError, ValueError, TypeError, KeyError):
         raise HTTPException(503, '样例链路暂时不可用，未发布结果') from None
+    finally:
+        with _lock:
+            _active -= 1
+
+
+# --- 自由文本问答端点 /api/ask ---
+class AskInput(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    query: str = Field(min_length=1, max_length=200)
+
+
+@app.post('/api/ask', response_model=Answer)
+def ask(payload: AskInput):
+    global _active
+    key = os.environ.get('API_KEY', '')
+    if not key:
+        raise HTTPException(503, '问答入口未就绪')
+    backend = os.environ.get('PUBLIC_DEMO_BACKEND', 'external_stub')
+    if backend == 'external_stub':
+        expected_trace = ['gateway', 'agent_orchestrator', 'rag_public', 'external_model', 'output_verify']
+        expected_model = 'external-stub'
+    elif backend == 'local_ollama':
+        model_name = os.environ.get('PUBLIC_DEMO_MODEL_NAME', 'qwen2.5:0.5b')
+        if not model_name or len(model_name) > 128 or model_name != model_name.strip():
+            raise HTTPException(503, '问答本地模型未配置；未启用回退')
+        expected_trace = ['gateway', 'hybrid_iface', 'rag_green', 'local_model', 'output_verify']
+        expected_model = 'ollama:' + model_name
+    else:
+        raise HTTPException(503, '问答后端未配置；未启用回退')
+    query = ' '.join(payload.query.split())[:200]
+    if not query:
+        raise HTTPException(400, '问题不能为空')
+    with _lock:
+        now = time.monotonic()
+        while _calls and now - _calls[0] >= 60:
+            _calls.popleft()
+        if len(_calls) >= 12 or _active >= 1:
+            raise HTTPException(429, '公开问答限流，请稍后再试')
+        _calls.append(now)
+        _active += 1
+    try:
+        task_id = 'publicask-' + uuid.uuid4().hex
+        with httpx.Client(timeout=120, trust_env=False, follow_redirects=False) as client:
+            with client.stream('POST', 'http://gateway:8000/v1/query',
+                    headers={'X-API-Key': key},
+                    json={'query': query, 'zone': 'green', 'task_id': task_id}) as response:
+                response.raise_for_status()
+                body = bytearray()
+                for chunk in response.iter_bytes():
+                    body.extend(chunk)
+                    if len(body) > 65536:
+                        raise ValueError('oversized')
+        result = Answer.model_validate_json(bytes(body))
+        if result.task_id != task_id or result.verification.task_id != task_id:
+            raise ValueError('task mismatch')
+        # 绿区未命中：网关在入口处即据实拒答（链路只到 gateway、model=none、refused=True、
+        # status=reject）。这是预期内的优雅拒答，必须在完整链路校验之前处理，否则会被误判成 503。
+        if result.refused:
+            if result.evidence or result.trace != ['gateway'] or result.model != 'none':
+                raise ValueError('malformed refusal')
+            return Answer(task_id=task_id, answer='',
+                evidence=[],
+                verification=VerificationResult(task_id=task_id, status='reject',
+                    provenance_ok=False, compliance_ok=True, hallucination_risk=0,
+                    reasons=['公开典籍语料未命中，据实拒答，不臆测、不提供诊疗']),
+                note='仅依据可信公开典籍语料作答；未找到相关典籍依据时据实拒答，不提供诊疗。',
+                model='none', trace=['gateway'], refused=True, simulated=True)
+        # 命中的公开答案：必须走完整绿区链路，且证据/摘录/验证全部核验通过
+        if result.trace != expected_trace or result.model != expected_model:
+            raise ValueError('unexpected backend chain')
+        trusted = {e.provenance.source_id: e for e in search(query, 20, Zone.GREEN)}
+        evidence = [trusted[p.source_id] for p in result.evidence
+                    if p.source_id in trusted and p == trusted[p.source_id].provenance]
+        if (result.verification.status.value != 'pass' or not result.simulated
+                or not result.verification.provenance_ok or not result.verification.compliance_ok
+                or not evidence or len(evidence) != len(result.evidence)
+                or not supported_quotes(result.answer, evidence)):
+            raise ValueError('unverified')
+        return Answer(task_id=task_id, answer=result.answer,
+            evidence=[e.provenance for e in evidence],
+            verification=VerificationResult(task_id=task_id, status='pass',
+                provenance_ok=True, compliance_ok=True, hallucination_risk=0,
+                reasons=['公开问答的出处及摘录格式已核验']),
+            note='公开/合成样例词法RAG与规则验证；仅供经典文化参考，不提供诊疗。',
+            model=expected_model, trace=expected_trace, refused=False, simulated=True)
+    except (httpx.HTTPError, ValueError, TypeError, KeyError):
+        raise HTTPException(503, '问答链路暂时不可用，未发布结果') from None
     finally:
         with _lock:
             _active -= 1
