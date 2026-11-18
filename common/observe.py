@@ -116,8 +116,8 @@ def metrics(window_minutes=60):
         conn = _connect()
     params = []
     if window_minutes:
-        where = "WHERE ts >= (%s || ' minutes')::interval"
-        params = [str(int(window_minutes))]
+        where = "WHERE ts >= now() - (%s * interval '1 minute')"
+        params = [int(window_minutes)]
     else:
         where = ""
 

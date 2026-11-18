@@ -1,6 +1,7 @@
 """⑦ 数据大盘：只读聚合流量埋点(qa_events)与分级RAG内容配置，单一淡雅中国风页面。
 
 页面用相对 api/* 取数，前端不接触任何密钥；DSN 仅服务端使用。观测只读，不写业务库。
+新增 /api/topology：备机容器实时运行指标 + 主机节点探活 + 分级链路数据流（见 dashboard/topology.py）。
 """
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import HTMLResponse
@@ -9,6 +10,7 @@ from common import observe
 from common.config import get_settings
 from common.corpus_fixtures import FIXTURES
 from common.health import health_router
+from dashboard import topology as topo
 
 app = FastAPI(title="DaoBrain ⑦ dashboard")
 app.include_router(health_router("dashboard"))
@@ -87,6 +89,14 @@ def api_qa_detail(id: int = Query(..., ge=1)):
     return d
 
 
+@app.get("/api/topology")
+def api_topology():
+    try:
+        return topo.build()
+    except Exception as exc:
+        raise HTTPException(503, "拓扑数据暂不可用：%s" % type(exc).__name__)
+
+
 @app.get("/", response_class=HTMLResponse)
 def page():
     return HTMLResponse(PAGE)
@@ -131,15 +141,44 @@ tr.click{cursor:pointer}tr.click:hover{background:#efe8d8}
 #detail.open{transform:none}
 .close{float:right;cursor:pointer;color:var(--muted)}
 .muted{color:var(--muted)}
+.tiny{color:var(--muted);font-size:12px;font-weight:400;letter-spacing:0;margin-left:8px}
 footer{color:var(--muted);font-size:12px;padding:24px 28px;text-align:center}
 .kv{display:flex;justify-content:space-between;font-size:13px;padding:4px 0}
 .ans{background:#fffdf7;border:1px dashed var(--line);border-radius:8px;padding:12px;white-space:pre-wrap;font-size:13px;margin-top:8px}
+.topo{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px}
+.topoc{min-width:186px;flex:0 0 186px}
+.topot{font-size:12px;color:var(--muted);letter-spacing:1px;border-bottom:1px solid var(--line);padding:0 0 6px;margin-bottom:8px;text-align:center}
+.node{border:1px solid var(--line);border-radius:10px;padding:9px 10px;margin-bottom:9px;background:#fffdf7;position:relative}
+.node.off{opacity:.62;background:#f6e9e6}
+.nlabel{font-size:13px;font-weight:700;line-height:1.35;padding-left:14px}
+.ndot{position:absolute;left:9px;top:12px;width:9px;height:9px;border-radius:50%;background:#3f7d54}
+.ndot.restarting{background:#c9a13b;animation:blink 1s infinite}
+.ndot.down{background:var(--danger)}
+@keyframes blink{50%{opacity:.25}}
+.nmeta{font-size:11px;color:var(--muted);margin-top:3px;padding-left:14px}
+.host{display:inline-block;padding:0 6px;border-radius:8px;font-size:10px;margin-right:4px}
+.host.b{background:#e6efe4;color:#3f7d54}.host.h{background:#e4e9f3;color:#3b5b8a}
+.mline{font-size:11px;color:var(--muted);padding-left:14px;margin-top:4px;display:flex;align-items:center;gap:6px}
+.mtrack{flex:1;height:6px;background:#ece3d2;border-radius:4px;overflow:hidden}
+.mfill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.mfill.hot{background:linear-gradient(90deg,#d69a4b,#c0685a)}
+.topoflow{display:flex;flex-wrap:wrap;gap:10px}
+.eflow{flex:0 0 calc(33.3% - 7px);border:1px solid var(--line);border-radius:9px;padding:8px 10px;background:#fffdf7;font-size:12px;min-width:230px}
+.eflow .eh{display:flex;justify-content:space-between;align-items:center}
+.eflow .path{color:var(--ink);font-weight:600}
+.eflow .rate{font-weight:700;color:#3f7d54}
+.eflow .rate.zero{color:var(--muted)}
+.arrow{height:8px;margin:7px 0;border-radius:4px;background:repeating-linear-gradient(90deg,#c9d6c4 0 12px,transparent 12px 22px);background-size:200% 100%}
+.arrow.on{animation:flow 1.1s linear infinite}
+@keyframes flow{from{background-position:0 0}to{background-position:-34px 0}}
 </style></head>
 <body>
 <header><h1>DaoBrain · 全链路数据大盘</h1>
-<div class="sub">公有云入口 → 本地分流 · 分级 RAG 解决情况 · 问答流水（时间倒序，可点击详情）· 数据来源：真实问答链路埋点落库</div></header>
+<div class="sub">公有云入口 → 本地分流 · 分级 RAG 解决情况 · 架构拓扑与容器实时运行 · 问答流水（时间倒序，可点击详情）· 数据来源：真实问答链路埋点落库 + 备机 Docker 实时指标</div></header>
 <div class="wrap">
 <div class="grid kpis" id="kpis"></div>
+<div class="card"><h2>架构拓扑 · 实时运行<span class="tiny" id="topometa"></span></h2><div class="topo" id="topo"></div></div>
+<div class="card"><h2>数据流 · 实时（近15分钟 req/min）<span class="tiny" id="flowmeta"></span></h2><div class="topoflow" id="topoflow"></div></div>
 <div class="card"><h2>全路径流量分道（公有云入口 / 本地分流）</h2><div id="flow"></div></div>
 <div class="cols3 grid" style="margin-top:18px">
   <div class="card" style="margin:0"><h2>区域分布</h2><div id="zones"></div></div>
@@ -154,7 +193,7 @@ footer{color:var(--muted);font-size:12px;padding:24px 28px;text-align:center}
   <tbody id="qa"></tbody></table></div>
 </div>
 <div id="detail"></div>
-<footer>DaoBrain 汉唐医道 · 观测为尽力而为落库，被拒绝/敏感请求不记录正文</footer>
+<footer>DaoBrain 汉唐医道 · 观测为尽力而为落库，被拒绝/敏感请求不记录正文 · 主机节点仅经 80 端口探活，容器级负载跨机不可见</footer>
 <script>
 function esc(s){return (s==null?'':String(s)).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));}
 function bar(list,valKey,labelKey,fmt){const max=Math.max(1,...list.map(x=>x[valKey]));
@@ -166,6 +205,48 @@ function pill(o){if(o==='release')return '<span class="tag pill-rel">已释放</
  if(o==='refuse_verify')return '<span class="tag pill-ref">核验拒绝</span>';
  if(o==='refuse_entry')return '<span class="tag pill-ref">入口拒绝</span>';
  if(o==='dependency_error')return '<span class="tag pill-err">依赖异常</span>';return esc(o);}
+function mbar(label,val,unit,pct,hot){const w=Math.max(0,Math.min(100,(pct==null?val:pct)));
+  return `<div class="mline"><span style="min-width:30px">${label}</span>
+  <div class="mtrack"><div class="mfill${hot?' hot':''}" style="width:${w}%"></div></div>
+  <span style="min-width:70px;text-align:right">${esc(val)}${unit||''}</span></div>`;}
+function nodeHtml(n){
+  let dot='ndot'; if(!n.up){dot+=' down';} else if(n.state==='restarting'){dot='ndot restarting';}
+  const host=n.host==='主机'?'<span class="host h">主机</span>':'<span class="host b">备机</span>';
+  let body='';
+  if(n.host==='主机'){ body=`<div class="mline" style="padding-left:14px">跨机仅探活 · ${esc(n.status||'')}</div>`; }
+  else {
+    body=mbar('CPU',(n.cpu==null?'—':n.cpu),'%',n.cpu,(n.cpu>=70))
+        +mbar('MEM',(n.mem_mb==null?'—':n.mem_mb),'MB',n.mem_percent,(n.mem_percent>=80));
+  }
+  const foot=(n.host==='主机')?'':`<div class="nmeta">↻${n.restarts} · 网 ${n.net_mbps}MB/s · pid ${n.pids} · ${esc(n.health||'')}</div>`;
+  return `<div class="node ${n.up?'on':'off'}"><div class="${dot}"></div>
+    <div class="nlabel">${esc(n.label)}</div>
+    <div class="nmeta">${host}: ${n.port} · ${esc(n.state||'')}</div>
+    ${body}${foot}</div>`;
+}
+function edgeHtml(e){const on=(e.signal&&e.signal>0)?'on':'';const rc=(e.signal>0)?'rate':'rate zero';
+  return `<div class="eflow"><div class="eh"><span class="path">${esc(e.label)}</span>
+  <span class="${rc}">${e.signal} /min</span></div>
+  <div class="nmeta">${esc(e.from)} → ${esc(e.to)}</div>
+  <div class="arrow ${on}"></div></div>`;
+}
+async function loadTopo(){
+  let d; try{ d=await (await fetch('api/topology')).json(); }
+  catch(e){ document.getElementById('topo').innerHTML='<div class="muted">拓扑数据暂不可用</div>'; return; }
+  const eng=d.engine||{};
+  document.getElementById('topometa').textContent='备机容器 '+(eng.containers_running||0)+'/'+(eng.containers_total||0)
+    +' · '+eng.cpus+'核/'+eng.mem_total_gb+'GB · 节点 '+d.nodes.length
+    +(d.cycle_seconds?(' · 采集'+d.cycle_seconds+'s'):'')+(d.collector_error?(' · ⚠'+esc(d.collector_error)):'');
+  const byl={}; d.nodes.forEach(n=>{(byl[n.layer]=byl[n.layer]||[]).push(n);});
+  document.getElementById('topo').innerHTML=(d.layers||[]).map(L=>{
+    const col=byl[L.layer]||[]; if(!col.length)return '';
+    return `<div class="topoc"><div class="topot">${esc(L.title)}</div>${col.map(nodeHtml).join('')}</div>`;
+  }).join('');
+  const f=(d.flow&&d.flow.per_min)||{};
+  document.getElementById('flowmeta').textContent='总 '+((d.flow&&d.flow.counts&&d.flow.counts.total)||0)
+    +' 条 / '+((d.flow&&d.flow.window_min)||15)+'分钟 · 绿'+(f.green||0)+'/min 红'+(f.red||0)+'/min 公有云'+(f.cloud||0)+'/min';
+  document.getElementById('topoflow').innerHTML=(d.edges||[]).map(edgeHtml).join('')||'<div class="muted">暂无链路</div>';
+}
 async function load(){
  const d=await (await fetch('api/overview')).json();
  const t=d.metrics.totals;
@@ -216,5 +297,7 @@ async function detail(id){
  el.classList.add('open');
 }
 load().catch(e=>{document.getElementById('kpis').innerHTML='<div class="card">数据加载失败：'+esc(e.message)+'</div>';});
+loadTopo();
+setInterval(loadTopo,6000);
 </script>
 </body></html>"""
