@@ -32,7 +32,7 @@ LAYERS = {
     7: "对外 · 主机",
 }
 TOPO = {
-    "public_demo":        ("浏览器→Nginx→样例 public_demo", 0, 18100, "edge"),
+    "public_demo":        ("浏览器→样例 public_demo", 0, 18100, "edge"),
     "gateway":            ("① gateway 本地入口", 1, 8000, "local"),
     "gateway_cloud":      ("① gateway_cloud 公有云入口", 1, 8000, "cloud"),
     "hybrid_iface":       ("④ hybrid_iface 本地分派", 2, 8004, "local"),
@@ -139,7 +139,9 @@ def build():
     seen = set()
     for n in raw.get("nodes", []):
         svc = n.get("service", "")
-        label, layer, port, group = TOPO.get(svc, (svc, 0, None, "aux"))
+        if svc not in TOPO:            # 仅登记组件入图；跳过临时/构建/无关容器
+            continue
+        label, layer, port, group = TOPO[svc]
         state = n.get("state")
         up = state == "running"
         nodes.append({
