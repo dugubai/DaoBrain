@@ -24,6 +24,7 @@ app.add_middleware(TrustedHostMiddleware, allowed_hosts=['39.102.49.1', '127.0.0
 PAGE = Path(__file__).with_name('index.html')
 SAMPLES = {'yin-yang': '法于阴阳，和于术数', 'inner-calm': '恬淡虚无，真气从之', 'seasons': '四时养生'}
 ORIGIN = 'http://39.102.49.1'
+GW = os.environ.get('GATEWAY_URL', 'http://gateway:8000').rstrip('/')
 _lock = Lock()
 _calls = deque()
 _active = 0
@@ -99,7 +100,7 @@ def demo(payload: DemoInput):
         query = SAMPLES[payload.sample_id]
         task_id = 'publicdemo-' + uuid.uuid4().hex
         with httpx.Client(timeout=120, trust_env=False, follow_redirects=False) as client:
-            with client.stream('POST', 'http://gateway:8000/v1/query',
+            with client.stream('POST', GW + '/v1/query',
                     headers={'X-API-Key': key},
                     json={'query': query, 'zone': 'green', 'task_id': task_id}) as response:
                 response.raise_for_status()
@@ -172,7 +173,7 @@ def ask(payload: AskInput):
     try:
         task_id = 'publicask-' + uuid.uuid4().hex
         with httpx.Client(timeout=120, trust_env=False, follow_redirects=False) as client:
-            with client.stream('POST', 'http://gateway:8000/v1/query',
+            with client.stream('POST', GW + '/v1/query',
                     headers={'X-API-Key': key},
                     json={'query': query, 'zone': 'green', 'task_id': task_id}) as response:
                 response.raise_for_status()
