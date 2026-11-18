@@ -49,61 +49,13 @@
   <section id="view-overview" class="tab-panel" role="tabpanel" aria-labelledby="tab-overview">
     <section class="panel"><div class="panel-head"><div><h2>监控报表 · 当前快照</h2><p>来自 /api/manage/report；没有历史趋势、告警规则或通知能力，不推算历史数据。</p></div><button id="report-refresh" type="button">读取报表快照</button></div><pre id="report-data">未采样 · 尚未请求报表</pre><p id="report-status" class="status-line" role="status" aria-live="polite"></p></section><section class="panel" style="margin-top:18px">
 <div class="panel-head"><div><h2>架构拓扑 · 实时运行</h2>
-<p>各组件容器的分布（备机 / 主机）、运行状态与 CPU / 内存 / 网络 / 进程负载，以及每条链路的实时数据流（req/min，动画箭头表示数据正在传输）。同源读取 <code>/daobrain/dash/api/topology</code>，自动刷新 5 秒，只读观测；不改变本控制台的 CSP / X-Frame 安全策略。</p></div>
+<p>整体架构图：各组件容器的分布（备机 / 主机）、运行状态与 CPU / 内存 / 网络 / 进程负载，以及每条链路的实时数据流转动画（箭头按 req/min 流速流动）。同源加载 <code>/daobrain/dash/topo.js</code> 并读取 <code>/daobrain/dash/api/topology</code>，自动刷新 5 秒，只读观测；不改变本控制台的 CSP / X-Frame 安全策略。</p></div>
 <a class="badge blue" href="/daobrain/dash/" target="_blank" rel="noopener">完整数据大盘 ↗</a></div>
 <div id="dbarch-meta" class="badge" style="margin-bottom:12px">加载中…</div>
-<div id="dbarch" class="dbarch"><div class="dbarch-empty">正在加载实时拓扑…</div></div>
-<div id="dbarch-flow" class="dbarch-flow"></div>
-<style>
-.dbarch{display:flex;gap:10px;overflow-x:auto;padding-bottom:6px}
-.db-col{min-width:178px;flex:0 0 178px}
-.db-colh{font-size:11px;color:var(--muted);letter-spacing:1px;border-bottom:1px solid var(--line);padding:0 0 6px;margin-bottom:8px;text-align:center}
-.db-n{position:relative;border:1px solid var(--line);border-radius:9px;padding:8px 9px 8px 12px;margin-bottom:8px;background:#fbfdff}
-.db-n.off{opacity:.6;background:#fdf0f2}
-.db-lbl{font-size:12px;font-weight:700;line-height:1.3;padding-left:12px}
-.db-sub{font-size:10px;color:var(--muted);padding-left:12px;margin-top:2px}
-.db-b{color:var(--green);background:#eff8f4;padding:0 5px;border-radius:6px;font-weight:600}
-.db-h{color:#355bb8;background:var(--blue-soft);padding:0 5px;border-radius:6px;font-weight:600}
-.db-d{position:absolute;left:7px;top:9px;width:8px;height:8px;border-radius:50%;background:var(--green)}
-.db-d.down{background:var(--red)}
-.db-d.restarting{background:var(--amber);animation:dbblink 1s infinite}
-@keyframes dbblink{50%{opacity:.25}}
-.db-m{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted);padding-left:12px;margin-top:4px}
-.db-ml{min-width:26px}.db-mv{min-width:64px;text-align:right}
-.db-t{flex:1;height:6px;background:#eef2f7;border-radius:4px;overflow:hidden}
-.db-f{display:block;height:100%;background:linear-gradient(90deg,#315cce,#23765d)}
-.db-f.hot{background:linear-gradient(90deg,#d69a4b,#ab3545)}
-.db-cross{padding-left:12px;font-size:11px;color:var(--muted);margin-top:4px}
-.db-ft{padding-left:12px;font-size:10px;color:var(--muted);margin-top:3px}
-.dbarch-flow{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
-.db-e{flex:0 0 calc(33.3% - 6px);min-width:220px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:#fbfdff;font-size:11px}
-.db-ep{font-weight:600;color:var(--ink)}
-.db-er{float:right;font-weight:700;color:var(--green)}.db-er.z{color:var(--muted)}
-.db-path{font-size:10px;color:var(--muted);margin-top:3px}
-.db-arrow{height:7px;margin-top:7px;border-radius:4px;background:repeating-linear-gradient(90deg,#b9c6e0 0 12px,transparent 12px 22px);background-size:200% 100%}
-.db-arrow.on{animation:dbflow 1.1s linear infinite}
-@keyframes dbflow{from{background-position:0 0}to{background-position:-34px 0}}
-.dbarch-empty{padding:18px;color:var(--muted);font-size:12px;border:1px dashed var(--line);border-radius:8px;text-align:center}
-</style>
-<script>
-(function(){
-var API="/daobrain/dash/api/topology";
-function esc(x){return (x==null?"":String(x)).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
-function bar(l,v,u,p,hot){var w=Math.max(0,Math.min(100,(p==null?v:p)));return '<div class="db-m"><span class="db-ml">'+l+'</span><span class="db-t"><i class="db-f'+(hot?" hot":"")+'" style="width:'+w+'%"></i></span><span class="db-mv">'+esc(v)+(u||"")+'</span></div>';}
-function node(n){var d=n.up?(n.state==="restarting"?"restarting":""):"down";var host=n.host==="主机"?'<b class="db-h">主机</b>':'<b class="db-b">备机</b>';
-var body=n.host==="主机"?'<div class="db-cross">跨机仅探活 · '+esc(n.status||"")+'</div>':bar("CPU",(n.cpu==null?"—":n.cpu),"%",n.cpu,n.cpu>=70)+bar("MEM",(n.mem_mb==null?"—":n.mem_mb),"MB",n.mem_percent,n.mem_percent>=80);
-var foot=n.host==="主机"?"":'<div class="db-ft">↻'+n.restarts+' · 网'+n.net_mbps+'MB/s · pid'+n.pids+'</div>';
-return '<div class="db-n '+(n.up?"on":"off")+'"><s class="db-d '+d+'"></s><div class="db-lbl">'+esc(n.label)+'</div><div class="db-sub">'+host+':'+n.port+' · '+esc(n.state||"")+'</div>'+body+foot+'</div>';}
-function edge(e){var on=e.signal>0;return '<div class="db-e"><span class="db-er'+(on?"":" z")+'">'+e.signal+' /min</span><span class="db-ep">'+esc(e.label)+'</span><div class="db-path">'+esc(e.from)+' → '+esc(e.to)+'</div><div class="db-arrow'+(on?" on":"")+'"></div></div>';}
-function render(d){var eng=d.engine||{};var el=document.getElementById("dbarch-meta");
-if(el)el.textContent="备机容器 "+(eng.containers_running||0)+"/"+(eng.containers_total||0)+" · "+eng.cpus+"核/"+eng.mem_total_gb+"GB · 节点 "+(d.nodes||[]).length+(d.cycle_seconds?(" · 采集"+d.cycle_seconds+"s"):"")+(d.collector_error?(" · 采集告警 "+d.collector_error):"");
-var byl={};(d.nodes||[]).forEach(function(n){(byl[n.layer]=byl[n.layer]||[]).push(n);});
-document.getElementById("dbarch").innerHTML=(d.layers||[]).map(function(L){var col=byl[L.layer]||[];if(!col.length)return "";return '<div class="db-col"><div class="db-colh">'+esc(L.title)+"</div>"+col.map(node).join("")+"</div>";}).join("")||'<div class="dbarch-empty">暂无节点</div>';
-document.getElementById("dbarch-flow").innerHTML=(d.edges||[]).map(edge).join("")||'<div class="dbarch-empty">暂无链路</div>';}
-function load(){fetch(API,{credentials:"same-origin",headers:{"Accept":"application/json"}}).then(function(r){if(!r.ok)throw 0;return r.json();}).then(render).catch(function(){var a=document.getElementById("dbarch");if(a)a.innerHTML='<div class="dbarch-empty">实时拓扑数据暂不可用（跨机隧道或大盘服务异常，请稍后重试）</div>';});}
-load();setInterval(load,5000);
-})();
-</script>
+<div id="dbarch" style="overflow:auto"><div class="dbarch-empty">正在加载实时拓扑…</div></div>
+<style>.dbarch-empty{padding:18px;color:var(--muted);font-size:12px;border:1px dashed var(--line);border-radius:8px;text-align:center}</style>
+<script src="/daobrain/dash/topo.js"></script>
+<script>(function(){if(window.DbTopo)DbTopo.mount({api:"/daobrain/dash/api/topology",box:"dbarch",meta:"dbarch-meta",interval:5000});})();</script>
 </section>
     <div class="metrics" aria-label="真实观测摘要">
       <dl class="metric"><dt>已观测 / 已登记组件</dt><dd id="metric-observed">未采样</dd><p>仅计入明确的服务端运行观测</p></dl>
