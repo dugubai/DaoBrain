@@ -97,6 +97,112 @@ def api_topology():
         raise HTTPException(503, "拓扑数据暂不可用：%s" % type(exc).__name__)
 
 
+@app.get("/arch", response_class=HTMLResponse)
+def arch():
+    """供中台嵌入的独立“动起来的架构图”页面：仅架构拓扑 + 实时数据流,自动刷新。"""
+    return HTMLResponse(ARCH_PAGE)
+
+
+ARCH_PAGE = r"""<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DaoBrain 架构拓扑 · 实时</title>
+<style>
+:root{--bg:#f3efe6;--ink:#3b3630;--muted:#8a8172;--line:#d8cfbd;--card:#faf7f0;--accent:#7d9b86;--accent2:#b08968;--danger:#c0685a;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Songti SC","SimSun",serif;line-height:1.6}
+header{padding:16px 20px 12px;border-bottom:1px solid var(--line)}
+h1{margin:0;font-size:18px;letter-spacing:2px}
+.sub{color:var(--muted);font-size:12px;margin-top:5px}
+.wrap{padding:16px 20px;max-width:1180px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-top:16px}
+.card h2{margin:0 0 12px;font-size:15px;letter-spacing:1px;border-left:3px solid var(--accent);padding-left:10px}
+.tiny{color:var(--muted);font-size:12px;font-weight:400;letter-spacing:0;margin-left:8px}
+.muted{color:var(--muted)}
+.topo{display:flex;gap:12px;overflow-x:auto;padding-bottom:6px}
+.topoc{min-width:190px;flex:0 0 190px}
+.topot{font-size:12px;color:var(--muted);letter-spacing:1px;border-bottom:1px solid var(--line);padding:0 0 6px;margin-bottom:8px;text-align:center}
+.node{border:1px solid var(--line);border-radius:10px;padding:9px 10px;margin-bottom:9px;background:#fffdf7;position:relative}
+.node.off{opacity:.62;background:#f6e9e6}
+.nlabel{font-size:13px;font-weight:700;line-height:1.35;padding-left:14px}
+.ndot{position:absolute;left:9px;top:12px;width:9px;height:9px;border-radius:50%;background:#3f7d54}
+.ndot.restarting{background:#c9a13b;animation:blink 1s infinite}
+.ndot.down{background:var(--danger)}
+@keyframes blink{50%{opacity:.25}}
+.nmeta{font-size:11px;color:var(--muted);margin-top:3px;padding-left:14px}
+.host{display:inline-block;padding:0 6px;border-radius:8px;font-size:10px;margin-right:4px}
+.host.b{background:#e6efe4;color:#3f7d54}.host.h{background:#e4e9f3;color:#3b5b8a}
+.mline{font-size:11px;color:var(--muted);padding-left:14px;margin-top:4px;display:flex;align-items:center;gap:6px}
+.mtrack{flex:1;height:6px;background:#ece3d2;border-radius:4px;overflow:hidden}
+.mfill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--accent),var(--accent2))}
+.mfill.hot{background:linear-gradient(90deg,#d69a4b,#c0685a)}
+.topoflow{display:flex;flex-wrap:wrap;gap:10px}
+.eflow{flex:0 0 calc(33.3% - 7px);border:1px solid var(--line);border-radius:9px;padding:8px 10px;background:#fffdf7;font-size:12px;min-width:230px}
+.eflow .eh{display:flex;justify-content:space-between;align-items:center}
+.eflow .path{color:var(--ink);font-weight:600}
+.eflow .rate{font-weight:700;color:#3f7d54}
+.eflow .rate.zero{color:var(--muted)}
+.arrow{height:8px;margin:7px 0;border-radius:4px;background:repeating-linear-gradient(90deg,#c9d6c4 0 12px,transparent 12px 22px);background-size:200% 100%}
+.arrow.on{animation:flow 1.1s linear infinite}
+@keyframes flow{from{background-position:0 0}to{background-position:-34px 0}}
+</style></head><body>
+<header><h1>DaoBrain 架构拓扑 · 实时运行</h1>
+<div class="sub">容器分布(备机/主机) · 运行状态 · CPU/内存/网络/进程 · 每条链路实时数据流(req/min,箭头表示正在流动) · 自动刷新 3s</div></header>
+<div class="wrap">
+<div class="card"><h2>架构拓扑 · 实时运行<span class="tiny" id="topometa"></span></h2><div class="topo" id="topo"></div></div>
+<div class="card"><h2>数据流 · 实时（近15分钟 req/min）<span class="tiny" id="flowmeta"></span></h2><div class="topoflow" id="topoflow"></div></div>
+</div>
+<script>
+function esc(x){return (x==null?'':String(x)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function mbar(label,val,unit,pct,hot){const w=Math.max(0,Math.min(100,(pct==null?val:pct)));
+  return `<div class="mline"><span style="min-width:30px">${label}</span>
+  <div class="mtrack"><div class="mfill${hot?' hot':''}" style="width:${w}%"></div></div>
+  <span style="min-width:70px;text-align:right">${esc(val)}${unit||''}</span></div>`;}
+function nodeHtml(n){
+  let dot='ndot'; if(!n.up){dot+=' down';} else if(n.state==='restarting'){dot='ndot restarting';}
+  const host=n.host==='主机'?'<span class="host h">主机</span>':'<span class="host b">备机</span>';
+  let body='';
+  if(n.host==='主机'){ body=`<div class="mline" style="padding-left:14px">跨机仅探活 · ${esc(n.status||'')}</div>`; }
+  else {
+    body=mbar('CPU',(n.cpu==null?'—':n.cpu),'%',n.cpu,(n.cpu>=70))
+        +mbar('MEM',(n.mem_mb==null?'—':n.mem_mb),'MB',n.mem_percent,(n.mem_percent>=80));
+  }
+  const foot=(n.host==='主机')?'':`<div class="nmeta">↻${n.restarts} · 网 ${n.net_mbps}MB/s · pid ${n.pids} · ${esc(n.health||'')}</div>`;
+  return `<div class="node ${n.up?'on':'off'}"><div class="${dot}"></div>
+    <div class="nlabel">${esc(n.label)}</div>
+    <div class="nmeta">${host}: ${n.port} · ${esc(n.state||'')}</div>
+    ${body}${foot}</div>`;
+}
+function edgeHtml(e){const on=(e.signal&&e.signal>0)?'on':'';const rc=(e.signal>0)?'rate':'rate zero';
+  return `<div class="eflow"><div class="eh"><span class="path">${esc(e.label)}</span>
+  <span class="${rc}">${e.signal} /min</span></div>
+  <div class="nmeta">${esc(e.from)} → ${esc(e.to)}</div>
+  <div class="arrow ${on}"></div></div>`;
+}
+async function loadTopo(){
+  let d; try{ d=await (await fetch('api/topology',{headers:{'Accept':'application/json'}})).json(); }
+  catch(e){ document.getElementById('topo').innerHTML='<div class="muted">拓扑数据暂不可用</div>'; return; }
+  const eng=d.engine||{};
+  document.getElementById('topometa').textContent='备机容器 '+(eng.containers_running||0)+'/'+(eng.containers_total||0)
+    +' · '+eng.cpus+'核/'+eng.mem_total_gb+'GB · 节点 '+d.nodes.length
+    +(d.cycle_seconds?(' · 采集'+d.cycle_seconds+'s'):'')+(d.collector_error?(' · 采集告警 '+esc(d.collector_error)):'');
+  const byl={}; d.nodes.forEach(n=>{(byl[n.layer]=byl[n.layer]||[]).push(n);});
+  document.getElementById('topo').innerHTML=(d.layers||[]).map(L=>{
+    const col=byl[L.layer]||[]; if(!col.length)return '';
+    return `<div class="topoc"><div class="topot">${esc(L.title)}</div>${col.map(nodeHtml).join('')}</div>`;
+  }).join('');
+  const f=(d.flow&&d.flow.per_min)||{};
+  document.getElementById('flowmeta').textContent='总 '+((d.flow&&d.flow.counts&&d.flow.counts.total)||0)
+    +' 条 / '+((d.flow&&d.flow.window_min)||15)+'分钟 · 本地'+(f.local||0)+'/min 绿区'+(f.green||0)+'/min 红区'+(f.red||0)+'/min 公有云'+(f.cloud||0)+'/min';
+  document.getElementById('topoflow').innerHTML=(d.edges||[]).map(edgeHtml).join('')||'<div class="muted">暂无链路</div>';
+}
+loadTopo();
+setInterval(loadTopo,3000);
+</script>
+</body></html>
+"""
+
+
 @app.get("/", response_class=HTMLResponse)
 def page():
     return HTMLResponse(PAGE)
