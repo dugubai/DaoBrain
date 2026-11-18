@@ -55,7 +55,7 @@ def tiers():
             "gateway_green_backend": s.gateway_green_backend,
             "green_path": "gateway → hybrid_iface/dispatch → rag_green → local_model → output_verify",
             "red_path": "gateway → hybrid_iface/dispatch → rag_red → daobrain_tuned",
-            "public_cloud_path": "gateway → agent_orchestrator/plan（external_stub，本次未启用）",
+            "public_cloud_path": "gateway_cloud → agent_orchestrator/plan → rag_public → external_model（external_stub 实时并行）",
         },
         "thresholds": {"top_k_default": 4, "top_k_max": 20,
                        "max_requests_per_minute": s.max_requests_per_minute,
@@ -244,7 +244,7 @@ async function loadTopo(){
   }).join('');
   const f=(d.flow&&d.flow.per_min)||{};
   document.getElementById('flowmeta').textContent='总 '+((d.flow&&d.flow.counts&&d.flow.counts.total)||0)
-    +' 条 / '+((d.flow&&d.flow.window_min)||15)+'分钟 · 绿'+(f.green||0)+'/min 红'+(f.red||0)+'/min 公有云'+(f.cloud||0)+'/min';
+    +' 条 / '+((d.flow&&d.flow.window_min)||15)+'分钟 · 本地'+(f.local||0)+'/min 绿区'+(f.green||0)+'/min 红区'+(f.red||0)+'/min 公有云'+(f.cloud||0)+'/min';
   document.getElementById('topoflow').innerHTML=(d.edges||[]).map(edgeHtml).join('')||'<div class="muted">暂无链路</div>';
 }
 async function load(){

@@ -1,0 +1,162 @@
+name: daobrain
+
+# 模拟全组件共享代码镜像；真实数据部署仍须独立服务身份/镜像/存储审核。
+x-app-base: &app-base
+  build:
+    context: .
+    dockerfile: Dockerfile.app
+  image: daobrain-app:dev
+  env_file: .env
+  restart: unless-stopped
+  init: true
+  read_only: true
+  tmpfs: [/tmp]
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  mem_limit: 384m
+  cpus: 1.0
+  logging:
+    driver: json-file
+    options: {max-size: "5m", max-file: "2"}
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: daobrain
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?请先生成开发环境密钥}
+      POSTGRES_DB: daobrain
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    networks: [green]
+    mem_limit: 512m
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U daobrain -d daobrain"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    command: [redis-server, --save, "", --appendonly, "no"]
+    networks: [green]
+    mem_limit: 128m
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  qdrant:
+    image: qdrant/qdrant:v1.12.1
+    volumes: ["qdrant_data:/qdrant/storage"]
+    networks: [green]
+    mem_limit: 512m
+
+  gateway:
+    <<: *app-base
+    command: [uvicorn, "gateway.main:app", --host, "0.0.0.0", --port, "8000"]
+    ports: ["127.0.0.1:8000:8000"]
+    networks: [green, local]
+
+  agent_orchestrator:
+    <<: *app-base
+    command: [uvicorn, "agent_orchestrator.main:app", --host, "0.0.0.0", --port, "8002"]
+    networks: [green]
+
+  rag_public:
+    <<: *app-base
+    command: [uvicorn, "rag_public.main:app", --host, "0.0.0.0", --port, "8003"]
+    networks: [green]
+
+  hybrid_iface:
+    <<: *app-base
+    command: [uvicorn, "hybrid_iface.main:app", --host, "0.0.0.0", --port, "8004"]
+    networks: [local, red, green]
+
+  external_model:
+    <<: *app-base
+    command: [uvicorn, "external_model.main:app", --host, "0.0.0.0", --port, "8005"]
+    # stub服务无互联网出口；live在应用层也明确503。
+    networks: [green]
+
+  local_model:
+    <<: *app-base
+    command: [uvicorn, "local_model.main:app", --host, "0.0.0.0", --port, "8006"]
+    environment:
+      LOCAL_MODEL_BACKEND: ${LOCAL_MODEL_BACKEND:-stub}
+    networks: [local]
+
+  rag_green:
+    <<: *app-base
+    command: [uvicorn, "rag_green.main:app", --host, "0.0.0.0", --port, "8007"]
+    networks: [local]
+
+  rag_red:
+    <<: *app-base
+    command: [uvicorn, "rag_red.main:app", --host, "0.0.0.0", --port, "8008"]
+    # 不发布端口，不接green网络；当前只有合成示例数据。
+    networks: [red]
+
+  redline_gate:
+    <<: *app-base
+    command: [uvicorn, "redline_gate.main:app", --host, "0.0.0.0", --port, "8009"]
+    networks: [red]
+
+  output_verify:
+    <<: *app-base
+    command: [uvicorn, "output_verify.main:app", --host, "0.0.0.0", --port, "8010"]
+    networks: [green]
+
+  daobrain_tuned:
+    <<: *app-base
+    command: [uvicorn, "daobrain_tuned.main:app", --host, "0.0.0.0", --port, "8011"]
+    networks: [red]
+
+  corpus_kb:
+    <<: *app-base
+    command: [uvicorn, "corpus_kb.main:app", --host, "0.0.0.0", --port, "8012"]
+    networks: [green]
+
+  card_annotator:
+    <<: *app-base
+    command: [uvicorn, "card_annotator.main:app", --host, "0.0.0.0", --port, "8013"]
+    networks: [green]
+
+  ocr:
+    <<: *app-base
+    command: [uvicorn, "ocr.main:app", --host, "0.0.0.0", --port, "8014"]
+    networks: [green]
+
+  ollama:
+    image: ollama/ollama:0.5.4
+    profiles: [model]
+    volumes: ["ollama:/root/.ollama"]
+    networks: [local]
+    mem_limit: 6g
+    deploy:
+      resources:
+        reservations:
+          devices: [{driver: nvidia, count: 1, capabilities: [gpu]}]
+
+  # 仅手动模型预下载使用；与运行期红/绿网络均不连接，不接触业务语料。
+  model_download:
+    image: ollama/ollama:0.5.4
+    profiles: [download]
+    volumes: ["ollama:/root/.ollama"]
+    networks: [download]
+    entrypoint: [/bin/sh, -c]
+    command:
+      - 'ollama serve & server=$$!; trap "kill $$server" EXIT; attempts=0; until ollama list; do attempts=$$((attempts+1)); test $$attempts -lt 30 || exit 1; sleep 1; done; ollama pull "$${LOCAL_MODEL_NAME:-qwen2.5:3b}"'
+    environment:
+      LOCAL_MODEL_NAME: ${LOCAL_MODEL_NAME:-qwen2.5:3b}
+
+networks:
+  green: {internal: true}
+  local: {internal: true}
+  red: {internal: true}
+  download: {}
+
+volumes:
+  pgdata:
+  qdrant_data:
+  ollama:

@@ -3,7 +3,13 @@
 数据来源：
 - 备机节点：本机 topology 采集器(经 Docker Engine API 读容器 CPU/内存/网络/重启/状态),仅供内网访问。
 - 主机节点：中台(/manage) 与 主页门户(/daobrain) 经主机 80 端口 HTTP 探活(尽力而为)。
-- 数据流：读 qa_events 近窗口埋点,按区域/通道换算每条边的实时 req/min。
+- 数据流：读 qa_events 近窗口埋点,按通道/区域换算每条边的实时 req/min。
+
+通道模型(与两条绿区后端一一对应)：
+- 本地分流：gateway(local_ollama) → hybrid_iface → rag_green → local_model/ollama → output_verify;
+  qa_events.channel = "local"。红区(red)同样经 hybrid_iface 派发,属本地通道内的一个区域。
+- 公有云入口：gateway_cloud(external_stub) → agent_orchestrator → rag_public → external_model;
+  qa_events.channel = "public_cloud"。公有云链路只承载绿区公开样本。
 """
 import json
 import time
@@ -24,18 +30,19 @@ LAYERS = {
     5: "对外服务",
 }
 TOPO = {
-    "gateway":            ("① 网关 gateway", 0, 8000, "core"),
-    "hybrid_iface":       ("混合分发 hybrid_iface", 0, 8004, "core"),
+    "gateway":            ("① 本地入口 gateway", 0, 8000, "local"),
+    "gateway_cloud":      ("① 公有云入口 gateway_cloud", 0, 8000, "cloud"),
+    "hybrid_iface":       ("混合分发 hybrid_iface", 0, 8004, "local"),
     "agent_orchestrator": ("公有云编排 orchestrator", 0, 8002, "cloud"),
     "redline_gate":       ("红线闸门 redline_gate", 0, 8009, "core"),
     "rag_public":         ("公开检索 rag_public", 1, 8003, "cloud"),
-    "rag_green":          ("绿区检索 rag_green", 1, 8007, "green"),
+    "rag_green":          ("绿区检索 rag_green", 1, 8007, "local"),
     "rag_red":            ("红区检索 rag_red", 1, 8008, "red"),
-    "corpus_kb":          ("典籍库 corpus_kb", 1, 8012, "green"),
-    "local_model":        ("本地小模型 local_model", 2, 8006, "green"),
+    "corpus_kb":          ("典籍库 corpus_kb", 1, 8012, "local"),
+    "local_model":        ("本地小模型 local_model", 2, 8006, "local"),
     "daobrain_tuned":     ("调教模型 daobrain_tuned", 2, 8011, "red"),
     "external_model":     ("外部模型 external_model", 2, 8005, "cloud"),
-    "ollama":             ("Ollama 推理 · GPU", 2, 11434, "green"),
+    "ollama":             ("Ollama 推理 · GPU", 2, 11434, "local"),
     "output_verify":      ("输出核验 output_verify", 3, 8010, "core"),
     "card_annotator":     ("卡片标注 card_annotator", 3, 8013, "aux"),
     "ocr":                ("OCR ocr", 3, 8014, "aux"),
@@ -56,14 +63,14 @@ PRIMARY_NODES = [
 
 # 边：from_service -> to_service（label 用于展示；bucket 决定取哪一档流量做 req/min）
 EDGES = [
-    ("gateway", "hybrid_iface", "总入口", "dispatched"),
-    ("hybrid_iface", "rag_green", "绿区分流", "green"),
+    ("gateway", "hybrid_iface", "本地分流", "local"),
+    ("hybrid_iface", "rag_green", "绿区检索", "green"),
     ("rag_green", "local_model", "绿区证据", "green"),
-    ("local_model", "output_verify", "绿区待验", "green"),
     ("local_model", "ollama", "GPU 调用", "green"),
+    ("local_model", "output_verify", "绿区待验", "green"),
     ("hybrid_iface", "rag_red", "红区分流", "red"),
     ("rag_red", "daobrain_tuned", "红区推理", "red"),
-    ("gateway", "agent_orchestrator", "公有云分流", "cloud"),
+    ("gateway_cloud", "agent_orchestrator", "公有云分流", "cloud"),
     ("agent_orchestrator", "rag_public", "公开检索", "cloud"),
     ("rag_public", "external_model", "外部模型", "cloud"),
     ("gateway", "postgres", "问答落库", "total"),
@@ -99,15 +106,21 @@ def _flow():
     out = {x["k"]: x["n"] for x in m.get("by_outcome", [])}
     total = t.get("total", 0) or 0
     entry_refused = out.get("refuse_entry", 0) or 0
-    green = zone.get("green", 0) or 0
-    red = zone.get("red", 0) or 0
+    # 通道 = 两条绿区后端；红区始终属本地通道内的一个区域。
+    local = chan.get("local", 0) or 0
     cloud = chan.get("public_cloud", 0) or 0
+    red = zone.get("red", 0) or 0
+    green_all = zone.get("green", 0) or 0
+    # 公有云链路只承载绿区,故本地绿区 = 全部绿区 - 公有云绿区,避免重复计数。
+    green_local = max(green_all - cloud, 0)
+    dispatched = max(local + cloud, 0)
     buckets = {
         "total": total,
-        "dispatched": max(total - entry_refused, 0),
-        "green": green,
-        "red": red,
+        "dispatched": dispatched,
+        "local": local,
         "cloud": cloud,
+        "green": green_local,
+        "red": red,
     }
     per_min = {k: round(v * 60.0 / FLOW_WINDOW_MIN, 2) for k, v in buckets.items()}
     return {"window_min": FLOW_WINDOW_MIN, "counts": buckets, "per_min": per_min,

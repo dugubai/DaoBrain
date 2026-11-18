@@ -58,6 +58,17 @@ services:
     ports: ["127.0.0.1:8000:8000"]
     networks: [green, local]
 
+  # 公有云入口：与本地 gateway 并行的第二条绿区后端(external_stub→orchestrator→rag_public→external_model)。
+  # 独立进程,便于大盘同时观测“公有云入口 vs 本地分流”两条真实链路。
+  gateway_cloud:
+    <<: *app-base
+    command: [uvicorn, "gateway.main:app", --host, "0.0.0.0", --port, "8000"]
+    ports: ["127.0.0.1:8100:8000"]
+    networks: [green, local]
+    environment:
+      GATEWAY_GREEN_BACKEND: external_stub
+      ALLOW_EXTERNAL_STUB: "true"
+
   agent_orchestrator:
     <<: *app-base
     command: [uvicorn, "agent_orchestrator.main:app", --host, "0.0.0.0", --port, "8002"]
