@@ -1,3 +1,10 @@
 .env
 *.pyc
 __pycache__/
+
+# AppleDouble resource forks
+._*
+# retained local backups
+*.bak.*
+# secrets
+.env
