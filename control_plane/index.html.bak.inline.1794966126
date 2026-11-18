@@ -1,0 +1,703 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<title>DaoBrain · 管理控制台</title>
+<style>
+:root{color-scheme:light;--navy:#111d32;--navy-light:#1e304d;--ink:#202e45;--muted:#66758b;--line:#e2e8f0;--paper:#fff;--canvas:#f3f6fa;--blue:#315cce;--blue-soft:#eef3ff;--amber:#916015;--amber-soft:#fff8e9;--red:#ab3545;--green:#23765d;--radius:12px}
+*{box-sizing:border-box;min-width:0}body{margin:0;color:var(--ink);background:var(--canvas);font:14px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;overflow-wrap:anywhere}button,input,select,textarea{font:inherit}button,a,input,select,textarea{touch-action:manipulation}button{border:1px solid var(--line);border-radius:7px;background:#fff;color:var(--ink);padding:8px 14px;font-weight:600;cursor:pointer;transition:background .15s}button:hover:not(:disabled){background:#f0f4fc;border-color:#a9badf}button.primary{background:var(--blue);color:white;border-color:var(--blue)}button.primary:hover:not(:disabled){background:#2449af}button.danger{color:var(--red);border-color:#e8cbd0}button:disabled{cursor:not-allowed;opacity:.48}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,summary:focus-visible,[tabindex]:focus-visible{outline:3px solid #8faef7;outline-offset:3px}button svg{width:15px;height:15px;vertical-align:-3px;margin-right:6px}input,select,textarea{width:100%;max-width:100%;border:1px solid #ced7e4;border-radius:7px;background:#fff;color:var(--ink);padding:9px 11px}input:disabled,select:disabled,textarea:disabled{background:#f2f4f8;color:#778395}textarea{resize:vertical}input[type=checkbox]{width:17px;height:17px;flex:none;accent-color:var(--blue)}label{display:block;font-size:13px;font-weight:600;margin-bottom:6px}h1,h2,h3,p{margin-top:0}h1{font-size:26px;line-height:1.4;margin-bottom:6px;letter-spacing:.4px}h2{font-size:17px;margin-bottom:5px}h3{font-size:14px;margin-bottom:5px}p{margin-bottom:12px}small,.muted,.hint{color:var(--muted)}.hint{font-size:12px;margin:6px 0 0}.mono,pre,code,textarea.code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}pre,code,.hash{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word}.hash{font-size:11px;line-height:1.65}.mono{overflow-wrap:anywhere}pre{margin:0;max-height:380px;overflow:auto;font-size:12px;line-height:1.8;background:#f7f9fc;border:1px solid var(--line);border-radius:8px;padding:14px}dl{margin:0}dt{color:var(--muted);font-size:12px}dd{margin:2px 0 10px;overflow-wrap:anywhere}.hidden,[hidden]{display:none!important}.skip{position:fixed;left:20px;top:-80px;background:white;padding:10px;z-index:20}.skip:focus{top:12px}.app{display:grid;grid-template-columns:228px minmax(0,1fr);min-height:100vh}.sidebar{background:var(--navy);color:#d6dfed;position:sticky;top:0;height:100vh;display:flex;flex-direction:column;padding:28px 18px}.brand{display:flex;gap:11px;align-items:center;padding:0 10px 29px;border-bottom:1px solid #2b3850}.brandmark{background:#355bcc;width:34px;height:38px;display:grid;place-items:center;border-radius:8px;color:#fff;font-weight:800;font-size:20px;letter-spacing:-2px}.brand strong{font-size:19px;color:#fff;letter-spacing:.5px}.brand small{display:block;font-size:10px;letter-spacing:1.4px;color:#90a4c2}.nav-caption{font-size:10px;color:#8193af;letter-spacing:1.5px;margin:26px 12px 12px}.nav{display:grid;gap:7px}.nav button{display:flex;gap:12px;align-items:center;width:100%;text-align:left;padding:12px 13px;color:#aebed5;background:transparent;border:1px solid transparent;border-radius:8px;font-weight:500}.nav button svg{width:18px;height:18px;flex:none;margin:0}.nav button[aria-selected=true]{color:white;background:#243d64;border-color:#34517d}.nav button:hover:not(:disabled){background:var(--navy-light);border-color:#34517d}.nav button span:last-child{margin-left:auto;color:#8ca1bf;font-size:10px}.sidebar-note{margin-top:auto;border-top:1px solid #2b3850;padding:19px 11px 0;font-size:11px;color:#8fa2bc}.sidebar-note strong{display:block;color:#c9d6ea;font-size:12px;margin-bottom:6px}.workspace{padding:0 32px 26px;max-width:1660px;width:100%;margin:auto}.topbar{min-height:77px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}.breadcrumb{font-size:12px;color:var(--muted)}.breadcrumb strong{color:var(--ink);font-weight:500}.top-meta{display:flex;gap:10px;align-items:center;font-size:11px;color:var(--muted)}.badge{display:inline-flex;align-items:center;gap:6px;border:1px solid #dfe5ef;background:#f6f8fb;color:#627088;border-radius:5px;padding:3px 8px;font-size:11px;line-height:1.6;max-width:100%;overflow-wrap:anywhere}.badge.ok{background:#eff8f4;color:var(--green);border-color:#cde7dc}.badge.warn{background:var(--amber-soft);color:var(--amber);border-color:#efdfb9}.badge.bad{background:#fdf0f2;color:var(--red);border-color:#f0d0d5}.badge.blue{background:var(--blue-soft);color:#355bb8;border-color:#dae4fc}.dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}.page-head{display:flex;justify-content:space-between;align-items:flex-start;gap:15px;margin-bottom:20px}.eyebrow{color:var(--blue);font-size:10px;font-weight:700;letter-spacing:1.4px;margin-bottom:7px}.page-head p{color:var(--muted);font-size:13px;margin:0}.panel{background:var(--paper);border:1px solid var(--line);border-radius:var(--radius);box-shadow:0 2px 5px #182d4d03;padding:21px;margin-bottom:18px}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:17px}.panel-head p{font-size:12px;color:var(--muted);margin:3px 0 0}.panel-head h2{margin:0}.account{padding:17px 20px}.account-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:14px;align-items:end}.account-title{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:13px}.account-title h2{font-size:14px;margin:0}.account-title .badge{margin-left:auto}.session-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}.identity-name{font-size:17px;font-weight:650}.permissions{display:flex;flex-wrap:wrap;gap:5px}.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.row.between{justify-content:space-between}.tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.global-status{padding:10px 14px;border:1px solid #dbe4f5;background:#edf3ff;color:#3a578a;border-radius:8px;font-size:12px;margin-bottom:18px;overflow-wrap:anywhere}.global-status.error{background:#fff1f3;color:var(--red);border-color:#edccd2}.notice{display:flex;gap:10px;padding:12px 14px;border-radius:8px;background:var(--amber-soft);border:1px solid #efdfb9;color:#805a21;font-size:12px;margin-bottom:18px}.notice svg{flex:none;width:17px;height:17px;margin-top:2px}.notice strong{font-weight:700}.notice p{margin:3px 0 0}.notice.neutral{background:#f2f6fd;color:#516987;border-color:#dce6f4}.component-toolbar{display:flex;align-items:end;gap:12px;margin-bottom:18px}.component-toolbar .field{flex:1;max-width:490px}.component-toolbar p{font-size:12px;color:var(--muted);margin:0 0 9px;flex:1}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px}.metric{padding:18px 19px;background:white;border:1px solid var(--line);border-radius:10px}.metric dt{font-size:12px}.metric dd{font-size:23px;line-height:1.4;font-weight:650;margin:9px 0 6px;letter-spacing:-.4px}.metric p{font-size:11px;color:var(--muted);margin:0}.section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:25px 0 13px}.section-title h2{margin:0}.section-title small{font-size:11px}.component-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.component-card{background:white;border:1px solid var(--line);border-radius:10px;padding:17px;display:flex;flex-direction:column;gap:10px}.component-card .card-title{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.component-card h3{font-size:14px;margin:0}.component-card .component-id{font-size:10px;color:var(--muted);margin-top:3px}.component-card dl{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}.component-card dd{font-size:12px;margin-bottom:5px}.component-card .boundary{font-size:11px;color:#796239;background:#fffaf0;padding:8px 10px;border-radius:5px;margin:0;margin-top:auto}.component-card details{font-size:11px}.component-card summary{cursor:pointer;color:var(--muted)}.component-card pre{margin-top:8px;font-size:10px;padding:9px}.subgrid{display:grid;grid-template-columns:1.1fr 1fr;gap:18px}.subgrid .panel{margin:0}.flow{display:flex;align-items:center;gap:9px;flex-wrap:wrap;font-size:11px;padding:12px 0 18px;color:var(--muted)}.flow b{font-weight:600;color:#445b7b}.flow .step{border:1px solid var(--line);border-radius:5px;padding:4px 9px;background:white}.review-grid{display:grid;grid-template-columns:minmax(0,.95fr) minmax(0,1.2fr);gap:18px}.review-grid .panel{margin:0}.list{display:grid;gap:8px;max-height:540px;overflow:auto;padding:2px}.list-item{width:100%;padding:12px;text-align:left;border:1px solid var(--line);border-radius:7px;background:#fff;font-weight:400}.list-item[aria-pressed=true]{border-color:#7798e9;background:#f2f6ff}.list-item .item-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:7px}.list-item .item-title{font-weight:650;font-size:12px}.list-item p{font-size:11px;color:var(--muted);margin:4px 0}.list-item .hash{color:var(--muted)}.empty{padding:35px 15px;border:1px dashed #d5deeb;background:#fafbfd;border-radius:8px;text-align:center;color:var(--muted);font-size:12px}.empty strong{display:block;color:#66758b;font-size:14px;margin-bottom:6px}.policy-label{display:inline-flex;padding:4px 8px;border-radius:4px;background:#edf2ff;color:#385bb4;font-size:11px;font-weight:650;margin-bottom:12px}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-bottom:16px}.check-field{display:flex;gap:9px;align-items:center;background:#f6f8fc;padding:11px;border:1px solid var(--line);border-radius:7px;font-size:12px;margin:0}.separator{border:0;border-top:1px solid var(--line);margin:18px 0}.metadata{display:grid;grid-template-columns:1fr 1fr;gap:0 18px;font-size:12px}.metadata .wide{grid-column:1/-1}.status-line{font-size:12px;min-height:22px;color:var(--muted);margin:9px 0 0}.editor-layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:18px}.editor-layout .panel{margin:0}.file-meta{padding:9px 12px;background:#f5f8fc;border:1px solid var(--line);border-radius:7px;margin:13px 0;font-size:11px}.code{min-height:330px;font-size:12px;line-height:1.8;tab-size:4;background:#fcfdff}.editor-head{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:13px}.editor-head h2{font-size:15px}.jobs-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:18px}.jobs-layout .panel{margin:0}.log{background:#142239;color:#cad7e9;border-color:#263b59;min-height:215px;max-height:510px;font-size:11px}.action-block{margin-top:20px}.action-hash{margin:12px 0;max-width:720px;padding:10px 12px;border:1px solid var(--line);background:#f8fafc;border-radius:6px}.action-hash small{display:block}.footer{font-size:10px;color:#8591a3;border-top:1px solid var(--line);padding-top:17px;margin-top:27px;display:flex;justify-content:space-between;gap:12px}.tab-panel{animation:enter .16s ease-out}@keyframes enter{from{opacity:.5}to{opacity:1}}@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media(min-width:1440px){.workspace{padding-left:38px;padding-right:38px}.component-grid{gap:16px}.component-card{padding:20px}}
+@media(max-width:1100px){.app{grid-template-columns:195px minmax(0,1fr)}.workspace{padding:0 22px 24px}.component-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.review-grid,.jobs-layout{grid-template-columns:1fr}.editor-layout{grid-template-columns:180px minmax(0,1fr)}.account-grid{grid-template-columns:1fr 1fr}.account-grid button{grid-column:1/-1}.subgrid{grid-template-columns:1fr}}
+@media(max-width:720px){.app{display:block}.sidebar{position:static;height:auto;padding:15px 14px 12px}.brand{border:0;padding:0 2px 14px}.brandmark{width:28px;height:31px;font-size:17px}.brand strong{font-size:17px}.brand small{font-size:9px}.nav-caption,.sidebar-note{display:none}.nav{grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.nav button{justify-content:center;gap:0;padding:10px 3px;font-size:12px;white-space:nowrap}.nav button svg,.nav button span:last-child{display:none}.workspace{padding:0 15px 23px}.topbar{min-height:58px;margin-bottom:20px}.top-meta .local-note{display:none}.page-head{margin-bottom:16px}h1{font-size:23px}.page-head .badge{display:none}.panel{padding:16px}.account-grid,.session-grid,.review-grid,.jobs-layout,.editor-layout,.subgrid{grid-template-columns:1fr}.account-grid{gap:10px}.account-grid button{grid-column:auto}.session-grid{gap:12px}.metrics{gap:10px}.metric{padding:14px}.metric dd{font-size:21px}.component-grid{grid-template-columns:1fr}.component-toolbar{flex-direction:column;align-items:stretch;gap:7px}.component-toolbar .field{max-width:none}.component-toolbar p{margin:0}.form-grid{grid-template-columns:1fr}.panel-head{align-items:flex-start;flex-wrap:wrap}.tools button{flex:1}.editor-layout{gap:12px}.code{min-height:290px}.footer{flex-direction:column;gap:4px}.flow{gap:6px}.metadata{gap:0 12px}.global-status{font-size:11px}.notice{padding:10px 12px}.job-actions{width:100%}.page-head p{font-size:12px}.account-title .badge{font-size:10px}}
+@media(max-width:720px){#plan-submit,#plan-approve,#plan-reject,#plan-cancel{flex:0 1 calc(50% - 4px);overflow-wrap:normal}#plan-execute{flex:0 1 100%;overflow-wrap:normal}}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">跳转到主内容</a>
+<div class="app">
+<aside class="sidebar" aria-label="工作台导航">
+  <div class="brand"><div class="brandmark" aria-hidden="true">D</div><div><strong>DaoBrain</strong><small>MANAGEMENT WORKBENCH</small></div></div>
+  <div class="nav-caption">控制平面 / CONTROL PLANE</div>
+  <nav class="nav" role="tablist" aria-label="管理页面" aria-orientation="vertical">
+    <button id="tab-overview" role="tab" aria-selected="true" aria-controls="view-overview" tabindex="0" data-tab="overview"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span>监控报表</span><span>01</span></button>
+    <button id="tab-config" role="tab" aria-selected="false" aria-controls="view-config" tabindex="-1" data-tab="config"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h3"/></svg><span>配置管理</span><span>02</span></button>
+    <button id="tab-dev" role="tab" aria-selected="false" aria-controls="view-dev" tabindex="-1" data-tab="dev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m8 6-6 6 6 6m8-12 6 6-6 6M14 3l-4 18"/></svg><span>开发调试</span><span>03</span></button>
+    <button id="tab-releases" role="tab" aria-selected="false" aria-controls="view-releases" tabindex="-1" data-tab="releases"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M12 16V3m-5 5 5-5 5 5M4 14v7h16v-7"/></svg><span>发布管理</span><span>04</span></button>
+    <button id="tab-jobs" role="tab" aria-selected="false" aria-controls="view-jobs" tabindex="-1" data-tab="jobs"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m5 6 4 3-4 3m0 6h14M13 7h6M13 11h6"/></svg><span>运维管理</span><span>05</span></button>
+    <button id="tab-audit" role="tab" aria-selected="false" aria-controls="view-audit" tabindex="-1" data-tab="audit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m12 2 8 4v6c0 5-8 10-8 10S4 17 4 12V6zM8 12l3 3 5-6"/></svg><span>权限审计</span><span>06</span></button>
+  </nav>
+  <div class="sidebar-note"><strong>后端是唯一执行权威</strong>前端仅请求、编辑与展示。权限、版本、审核身份和执行边界均由服务端核验。<br><br>凭证仅在当前页面内存中。</div>
+</aside>
+<main id="main" class="workspace" tabindex="-1">
+  <header class="topbar"><div class="breadcrumb">管理工作台 <span aria-hidden="true"> / </span> <strong id="crumb">监控报表</strong></div><div class="top-meta"><span class="local-note">同源 API · 手动刷新</span><span id="session-badge" class="badge"><span class="dot" aria-hidden="true"></span><span id="session-label">未登录</span></span></div></header>
+  <div class="page-head"><div><div class="eyebrow">DAOBRAIN / GOVERNANCE & DEVELOPMENT</div><h1 id="page-title">组件总览</h1><p id="page-description">区分能力登记与运行观测，让每一次变更都有依据。</p></div><span class="badge blue">管理控制面 · 非业务入口</span></div>
+  <section class="panel account" aria-labelledby="account-heading">
+    <div class="account-title"><h2 id="account-heading">身份与安全会话</h2><span class="badge">内存凭证 · 不持久化</span><button id="logout-button" type="button" class="danger" disabled>退出 / 清空</button></div>
+    <form id="login-form" class="account-grid">
+      <div><label for="login-name">用户名</label><input id="login-name" name="username" autocomplete="off" required maxlength="128" placeholder="管理员分配的账号"></div>
+      <div><label for="login-password">密码</label><input id="login-password" name="password" type="password" autocomplete="off" required maxlength="512" placeholder="输入密码"></div>
+      <button id="login-button" class="primary" type="submit">登录工作台</button>
+    </form>
+    <div id="session-info" hidden><div class="session-grid"><div><div id="identity-name" class="identity-name">未登录</div><div id="identity-id" class="hint"></div><div id="identity-expires" class="hint"></div></div><div><label>服务端授予权限</label><div id="permissions" class="permissions"></div><p class="hint">没有对应权限的写入操作不可用；最终授权由服务端决定。</p></div></div><div class="row between" style="margin-top:13px"><span id="identity-note" class="hint">身份来自真实认证响应。</span><div class="tools"><button id="identity-refresh" type="button">核验当前身份</button></div></div></div>
+    <p id="auth-status" class="status-line" role="status" aria-live="polite">请先登录。关闭或刷新页面即丢失会话，不读取或写入浏览器存储。</p>
+  </section>
+  <div id="global-status" class="global-status" role="status" aria-live="polite" aria-atomic="true">尚未请求 API。全部运行状态与资源数据默认「未采样」。</div>
+  <div class="component-toolbar"><div class="field"><label for="component-select">当前管理组件</label><select id="component-select" disabled><option value="">登录后读取服务端组件登记</option></select></div><button id="components-refresh" type="button">刷新组件观测</button><p id="component-context">目录、运行归属与可编辑范围以服务端登记为准。</p></div>
+
+  <section id="view-overview" class="tab-panel" role="tabpanel" aria-labelledby="tab-overview">
+    <section class="panel"><div class="panel-head"><div><h2>监控报表 · 当前快照</h2><p>来自 /api/manage/report；没有历史趋势、告警规则或通知能力，不推算历史数据。</p></div><button id="report-refresh" type="button">读取报表快照</button></div><pre id="report-data">未采样 · 尚未请求报表</pre><p id="report-status" class="status-line" role="status" aria-live="polite"></p></section><section class="panel" style="margin-top:18px"><div class="panel-head"><div><h2>架构拓扑 · 实时运行</h2><p>各组件容器的分布（备机 / 主机）、运行状态与 CPU / 内存 / 网络 / 进程负载，以及每条链路的实时数据流（req/min，箭头表示正在流动）。数据来源：备机 Docker Engine 实时指标 + 主机节点 HTTP 探活 + 问答链路埋点落库；自动刷新，只读观测。</p></div><a class="badge blue" href="/daobrain/dash/" target="_blank" rel="noopener">完整数据大盘 ↗</a></div><iframe title="DaoBrain 架构拓扑实时图" src="/daobrain/dash/arch" loading="lazy" style="width:100%;height:840px;border:1px solid var(--line);border-radius:10px;background:#f3efe6"></iframe><p class="hint">若下方区域空白或跨机隧道抖动，请点右上角“完整数据大盘”在新窗口打开同一实时图。</p></section>
+    <div class="metrics" aria-label="真实观测摘要">
+      <dl class="metric"><dt>已观测 / 已登记组件</dt><dd id="metric-observed">未采样</dd><p>仅计入明确的服务端运行观测</p></dl>
+      <dl class="metric"><dt>当前组件 · CPU</dt><dd id="metric-cpu">未采样</dd><p>不推算、不合成资源指标</p></dl>
+      <dl class="metric"><dt>当前组件 · 内存</dt><dd id="metric-memory">未采样</dd><p>仅展示服务端返回值与单位</p></dl>
+      <dl class="metric"><dt>独立隔离构建器</dt><dd id="metric-builder">未采样</dd><p>未确认就绪时，构建保持关闭</p></dl>
+    </div>
+    <div class="notice"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m12 3 10 18H2L12 3zM12 9v5m0 3v1"/></svg><div><strong>六类应用共享 backend，不是六个独立服务</strong><p>字卡、典籍、问答、四诊、媒体、会员均由同一 backend 承载。启动、停止或重启此运行单元会影响全部六类应用；组件登记与策略激活不代表业务能力或进程运行已验收。</p></div></div>
+    <div class="section-title"><h2>应用组件</h2><small id="sample-note">未采样 · 没有后台轮询</small></div>
+    <div id="application-cards" class="component-grid"></div>
+    <div class="section-title"><h2>其他已登记组件</h2><small>依赖、中间件与开发边界</small></div>
+    <div id="other-cards" class="component-grid"><div class="empty">登录并刷新后展示服务端登记；不预置运行成功状态。</div></div>
+    <div class="subgrid" style="margin-top:20px"><section class="panel"><div class="panel-head"><h2>能力与权限边界</h2></div><p class="hint">不提供任意 Shell、URL、环境变量或 Compose 编辑器。不绕过受保护目录，不将代码发布伪装为策略激活。</p><hr class="separator"><dl><dt>源码发布</dt><dd>不可用：发布登记与审核不等于部署；可信发布执行器尚未就绪</dd><dt>独立构建</dt><dd id="builder-boundary">未采样：需服务端明确确认独立隔离构建器就绪</dd><dt>运行状态</dt><dd>只能从真实 API 观测；未知值始终保持中性</dd></dl></section><section class="panel"><div class="panel-head"><h2>服务端限制原文</h2><span class="badge">只读</span></div><pre id="server-limits">未采样</pre></section></div>
+  </section>
+
+  <section id="view-config" class="tab-panel" role="tabpanel" aria-labelledby="tab-config" hidden>
+    <div class="notice neutral"><div><strong>控制策略·非业务配置</strong><p>本页仅修订管理控制策略 enabled 与 request_timeout_s，不是业务环境配置。激活只改变服务端管理策略，不能据此宣称运行中的应用配置已改变。</p></div></div>
+    <div class="flow" aria-label="控制策略审核流程"><span class="step">草稿</span><span aria-hidden="true">→</span><span class="step">提交审核</span><span aria-hidden="true">→</span><span class="step">独立人员审核</span><span aria-hidden="true">→</span><span class="step">激活控制策略</span><b>身份与版本由服务端复核</b></div>
+    <div class="review-grid">
+      <section class="panel"><div class="panel-head"><div><h2>策略修订</h2><p>版本、作者、哈希均来自服务端</p></div><button id="revisions-refresh" type="button">刷新修订</button></div><div id="revision-list" class="list"><div class="empty">未采样 · 选择组件后手动读取修订</div></div><p id="revision-status" class="status-line" role="status"></p></section>
+      <section class="panel"><div class="panel-head"><h2 id="policy-editor-title">新建策略草稿</h2><button id="draft-new" type="button">新草稿表单</button></div><span class="policy-label">控制策略·非业务配置</span><dl id="revision-meta" class="metadata"></dl><form id="policy-form"><div class="form-grid"><div><label for="policy-enabled">允许管理动作（enabled）</label><label class="check-field"><input id="policy-enabled" type="checkbox" disabled>允许控制器执行受控动作</label></div><div><label for="policy-timeout">请求超时 / 秒</label><input id="policy-timeout" type="number" min="1" max="120" step="1" value="30" required disabled><p class="hint">管理请求期限，范围 1–120 秒</p></div></div><div class="tools"><button id="policy-create" class="primary" type="button">创建草稿</button><button id="policy-save" type="submit">保存修订</button><button id="policy-submit" type="button">提交审核</button></div></form><hr class="separator"><label>独立审核与激活</label><div class="tools"><button id="policy-approve" type="button">审核通过</button><button id="policy-reject" class="danger" type="button">驳回</button><button id="policy-activate" class="primary" type="button">激活控制策略</button></div><p id="policy-gate" class="hint">未登录：所有策略写入操作已禁用。</p><p class="hint">作者不能自行审核。前端约束仅辅助提示，服务端始终核验独立审核身份与 expected_version。</p></section>
+    </div>
+  </section>
+
+  <section id="view-dev" class="tab-panel" role="tabpanel" aria-labelledby="tab-dev" hidden>
+    <div class="notice neutral"><div><strong>源码编辑与发布分离</strong><p>仅允许服务端登记的文件；保存必须携带文件 SHA-256，任务必须绑定完整工作区 source_hash。受保护目录不可编辑，测试、构建均不等于发布。</p></div></div>
+    <section class="panel"><div class="panel-head"><div><h2>隔离工作区</h2><p>切换组件或新建工作区会清空当前源码、差异和任务详情。</p></div><div class="tools"><button id="workspace-create" class="primary" type="button">新建工作区</button><button id="workspace-refresh" type="button">刷新工作区</button></div></div><dl id="workspace-meta" class="metadata"><div><dt>工作区</dt><dd>未采样</dd></div></dl><p id="workspace-gate" class="hint">需要 develop 权限与可编辑组件。</p></section>
+    <div class="editor-layout">
+      <section class="panel"><h2>文件选择</h2><label for="file-select">工作区已登记文件</label><select id="file-select" disabled><option value="">尚未读取文件清单</option></select><p class="hint">不能输入任意文件路径。未保存时请先保存，或明确丢弃本地修改并重读。</p><button id="file-reload" type="button" style="margin-top:14px;width:100%">读取选中文件</button><hr class="separator"><label>版本差异</label><button id="diff-refresh" type="button" style="width:100%">读取服务端差异</button><p class="hint">差异是服务端工作区与基线的比较，不包含尚未保存的文本。</p></section>
+      <section class="panel"><div class="editor-head"><h2>源码编辑</h2><span id="dirty-badge" class="badge">未读取</span></div><label id="source-label" for="source-editor">选中文件的源码</label><textarea id="source-editor" class="code" spellcheck="false" autocomplete="off" disabled placeholder="选择工作区文件后读取；API 内容仅作为纯文本显示。"></textarea><div class="file-meta"><small>文件 SHA-256 · 乐观并发前置条件</small><div id="file-hash" class="hash">未采样</div></div><div class="tools"><button id="file-save" class="primary" type="button">保存源码</button><button id="job-test" type="button">运行测试</button><button id="job-build" type="button">隔离构建</button><button id="source-publish" type="button" disabled title="可信发布执行器尚未就绪；版本登记、审核与测试构建都不代表部署">发布源码 · 未开放</button></div><p id="source-gate" class="hint">未读取文件，不能保存或执行任务。</p><p id="build-gate" class="hint">未确认独立隔离构建器就绪：不能构建。</p><p id="test-gate" class="hint">隔离测试就绪状态未采样，是否准入由服务端验证。</p><p id="dev-status" class="status-line" role="status"></p></section>
+    </div>
+    <section class="panel" style="margin-top:18px"><div class="panel-head"><h2>服务端源码差异</h2><span class="badge">纯文本 · 不执行</span></div><pre id="source-diff">未采样 · 尚未请求差异</pre></section>
+  </section>
+
+  <section id="view-releases" class="tab-panel" role="tabpanel" aria-labelledby="tab-releases" hidden>
+    <div class="notice"><div><strong>登记摘要不是验证，审核不是部署</strong><p>发布执行器尚未可信登记；本页不提供证明、初始化或执行器配置接口。镜像证明、业务配置适配、健康 / 容量 / 基线 / 备份权威预检仍是阻断项。HTTP 503 表示执行被阻止，不是发布成功或部署已受理。</p></div></div>
+    <div class="flow"><span class="step">不可变版本登记</span><span aria-hidden="true">→</span><span class="step">计划草稿</span><span aria-hidden="true">→</span><span class="step">独立审核</span><span aria-hidden="true">→</span><span class="step">独立操作员 · 手动窗口</span><b>无自动调度；执行未就绪时禁用</b></div>
+    <div class="review-grid">
+      <section class="panel"><div class="panel-head"><h2>已登记版本</h2><button id="versions-refresh" type="button">刷新版本列表</button></div><div id="version-list" class="list"><div class="empty">未采样 · 无预置版本</div></div><hr class="separator"><div class="panel-head"><h3>选中版本 · 服务端原文</h3><button id="version-refresh" type="button">重读版本</button></div><pre id="version-data">未采样 · 未选择版本</pre><p id="version-blockers" class="hint">未核验；不能把摘要登记视为验证。</p><p id="versions-status" class="status-line" role="status" aria-live="polite"></p></section>
+      <section class="panel"><h2>注册版本 · 固定 manifest JSON</h2><label for="manifest-editor">manifest（只接收说明中的固定字段）</label><textarea id="manifest-editor" class="code" spellcheck="false" autocomplete="off" maxlength="48000" aria-describedby="manifest-hint" disabled></textarea><p id="manifest-hint" class="hint">component / runtime 必须匹配真实登记；label 为语义版本。五个摘要必须来自真实产物与报告，均为小写 64 位十六进制。config_revision 为独立审核的策略 ID，config_sha256 仅绑定控制策略，不证明业务配置。image_digest 可为 null 或真实 sha256: 摘要；schema_version 为正整数；previous_version 可为 null 或真实版本 ID。不会生成有效示例摘要或代替本地可信证明。</p><div class="tools" style="margin-top:14px"><button id="version-register" class="primary" type="button">注册不可变版本</button></div><pre id="version-result" style="margin-top:14px">尚无注册响应</pre><p id="version-write-status" class="status-line" role="status" aria-live="polite"></p></section>
+    </div>
+    <div class="review-grid" style="margin-top:18px">
+      <section class="panel"><div class="panel-head"><h2>发布 / 回滚计划</h2><button id="plans-refresh" type="button">刷新计划列表</button></div><div id="plan-list" class="list"><div class="empty">未采样 · 无预置计划</div></div><hr class="separator"><div class="panel-head"><h3>选中计划 · 服务端原文</h3><button id="plan-refresh" type="button">重读选中计划</button></div><pre id="plan-data">未采样 · 未选择计划</pre><p id="plan-blockers" class="hint">未采样 · 无执行就绪证明</p><div class="tools" style="margin-top:14px"><button id="plan-submit" type="button">提交审核</button><button id="plan-approve" type="button">独立审核通过</button><button id="plan-reject" class="danger" type="button">驳回</button><button id="plan-cancel" class="danger" type="button">作者取消计划</button><button id="plan-execute" class="primary" type="button" disabled>确认窗口并请求执行</button></div><p id="plan-gate" class="hint">develop：作者编辑 / 提交 / 取消；review：独立于计划作者与版本注册者；operate：还须独立于审核者。服务端是唯一授权权威。</p><p id="plans-status" class="status-line" role="status" aria-live="polite"></p></section>
+      <section class="panel"><div class="panel-head"><h2 id="plan-editor-title">新建发布计划</h2><button id="plan-new" type="button">清空 / 新计划表单</button></div><label for="plan-editor">固定 plan JSON</label><textarea id="plan-editor" class="code" spellcheck="false" autocomplete="off" maxlength="48000" aria-describedby="plan-hint" disabled></textarea><p id="plan-hint" class="hint">仅 version_id、planned_at、expires_at、dependencies、prechecks、strategy。窗口为 UTC Unix 秒正整数；dependencies 为真实版本 ID 数组；prechecks 只含 health_sha256 / capacity_sha256 / baseline_sha256 / backup_sha256（真实摘要或 null，不代表权威预检已通过）；strategy 仅 serial-app-slot。编辑保存仅限作者的未提交 release 草稿，携带服务端 expected_version；回滚草稿不可编辑。</p><div class="tools" style="margin-top:14px"><button id="plan-create" class="primary" type="button">创建发布计划</button><button id="plan-save" type="button">保存选中草稿</button></div><pre id="plan-result" style="margin-top:14px">尚无计划写入响应</pre><p id="plan-write-status" class="status-line" role="status" aria-live="polite"></p></section>
+    </div>
+    <section class="panel" style="margin-top:18px"><h2>创建回滚计划 · 固定 JSON</h2><label for="rollback-editor">version_id / current_version_id / window</label><textarea id="rollback-editor" class="code" style="min-height:180px" spellcheck="false" autocomplete="off" maxlength="8000" aria-describedby="rollback-hint" disabled></textarea><p id="rollback-hint" class="hint">目标与当前版本须为真实、独立认可且已保留镜像的兼容祖先版本。window 仅 planned_at / expires_at（UTC Unix 秒）。current_version_id 只是声明的基线，不证明运行中版本；仅创建待审核回滚计划，不恢复生产数据，不执行回滚。</p><button id="rollback-create" type="button" style="margin-top:14px">创建待审核回滚计划</button><pre id="rollback-result" style="margin-top:14px">尚无回滚计划响应</pre><p id="rollback-status" class="status-line" role="status" aria-live="polite"></p></section>
+    <section class="panel"><div class="panel-head"><div><h2>发布执行请求记录</h2><p>从真实请求 API 读取；blocked / interrupted 不代表部署已受理。</p></div><button id="release-requests-refresh" type="button">读取执行请求</button></div><pre id="release-requests-data">未采样 · 尚未读取执行请求</pre><p id="release-requests-status" class="status-line" role="status" aria-live="polite"></p></section>
+  </section>
+
+  <section id="view-jobs" class="tab-panel" role="tabpanel" aria-labelledby="tab-jobs" hidden>
+    <div class="jobs-layout"><section class="panel"><div class="panel-head"><div><h2>真实任务记录</h2><p>没有预置任务、模拟进度或后台轮询</p></div><button id="jobs-refresh" type="button">刷新任务列表</button></div><div id="job-list" class="list"><div class="empty">未采样 · 手动读取服务端任务</div></div><p id="jobs-status" class="status-line" role="status"></p></section><aside class="panel" aria-label="任务状态与日志"><div class="panel-head"><h2>任务详情</h2><button id="job-refresh" type="button">刷新选中任务</button></div><dl id="job-meta" class="metadata"><div><dt>任务状态</dt><dd>未采样</dd></div></dl><label for="job-log">服务端日志 · 只读</label><pre id="job-log" class="log" tabindex="0">未采样 · 未选择任务</pre><p id="job-status" class="status-line" role="status"></p></aside></div>
+    <section class="panel action-block"><div class="panel-head"><div><h2>受控运行操作</h2><p>仅支持 start / stop / restart，绝不接收任意命令。</p></div><span class="badge warn">需要 operate 权限</span></div><div id="shared-warning" class="notice"><div><strong>共享 backend 操作警告</strong><p>六类应用共享同一个 backend。若所选组件归属 backend，这些操作会影响字卡、典籍、问答、四诊、媒体与会员全部六类应用。</p></div></div><div class="action-hash"><small>当前服务端 active 控制策略哈希 · expected_config_hash</small><div id="active-policy-hash" class="hash">未采样</div></div><div class="tools"><button id="action-start" type="button">启动</button><button id="action-stop" type="button" class="danger">停止</button><button id="action-restart" type="button">重启</button><button id="action-policy-refresh" type="button">核验 active 策略</button></div><p id="action-gate" class="hint">没有 operate 权限或缺少服务端 active 策略哈希时，操作保持禁用。</p><p id="action-status" class="status-line" role="status"></p></section>
+  </section>
+  <section id="view-audit" class="tab-panel" role="tabpanel" aria-labelledby="tab-audit" hidden>
+    <div class="notice neutral"><div><strong>权限与审计只读</strong><p>只显示 /api/auth/me 返回的当前账号详情与实际权限，不推导角色权限，不提供授权编辑或账号管理接口。控制平面审计和发布审计分别读取；接口未部署或存储不可用时显示真实错误，不填充示例事件。</p></div></div>
+    <section class="panel"><div class="panel-head"><h2>当前账号详情 / 权限</h2><button id="audit-account-refresh" type="button">读取账号详情</button></div><pre id="audit-account-data">未采样 · 请核验身份</pre><p id="audit-account-status" class="status-line" role="status" aria-live="polite"></p></section>
+    <div class="subgrid"><section class="panel"><div class="panel-head"><h2>控制平面审计</h2><button id="cp-audit-refresh" type="button">读取管理审计</button></div><pre id="cp-audit-data">未采样 · 尚未读取审计</pre><p id="cp-audit-status" class="status-line" role="status" aria-live="polite"></p></section><section class="panel"><div class="panel-head"><h2>发布审计</h2><button id="release-audit-refresh" type="button">读取发布审计</button></div><pre id="release-audit-data">未采样 · 尚未读取审计</pre><p id="release-audit-status" class="status-line" role="status" aria-live="polite"></p></section></div>
+  </section>
+  <footer class="footer"><span>DaoBrain 管理控制台 / 审核、编辑、观测分离</span><span>不持久化凭证 · 不自动执行 · 不将未知状态标记为正常</span></footer>
+</main>
+</div>
+<script>
+'use strict';
+// Session, query generations and abort signals fence every asynchronous UI write.
+const $ = id => document.getElementById(id);
+const scopes = new Map(), pending = new Map(), controllers = new Set();
+let epoch = 0, token = '', user = null, expires = null;
+let components = [], limits = null, serverCapabilities = null, sampled = false, selectedComponent = '';
+let revisions = [], revision = null, activeHash = '', activeEnabled = null;
+let workspace = null, files = [], sourceFile = null, dirty = false, conflict = false, expectedHash = '';
+let jobs = [], selectedJob = '', job = null;
+let releaseVersions = [], releaseVersion = null, selectedVersion = '';
+let releasePlans = [], releasePlan = null, planVersion = null, selectedPlan = '', planFresh = false;
+let releaseRequests = null, releaseAudit = null, cpAudit = null, reportSnapshot = null, accountDetails = null;
+const SHARED = [
+  ['card_workflow','字卡录入审核','规范公开经典审核入库'],
+  ['knowledge_library','典籍检索溯源','小语料词法检索，非完整向量检索'],
+  ['public_qa','经义智能问答','语义质量未验收，回答需要人工核对'],
+  ['clinical_records','四诊记录辅助','仅完全合成夹具，不面向真实诊疗'],
+  ['media_review','图文视频解读','仅公开引文文字，视觉识别未实现'],
+  ['membership','门户会员支付','真实支付未开放，最多可选沙箱']
+];
+const TAB_INFO = {
+  overview:['监控报表','监控报表','真实当前快照与组件观测；尚无历史趋势或告警能力。'],
+  config:['配置管理','配置管理','以版本和独立审核约束控制策略变更，不混淆管理策略与业务配置。'],
+  dev:['开发调试','开发调试','从真实工作区读取源码，以文件哈希和工作区哈希保护写入与执行。'],
+  releases:['发布管理','发布管理','登记不可变版本，管理独立审核计划；摘要不是验证，执行未就绪不代表部署受理。'],
+  jobs:['运维管理','运维管理','读取真实任务及日志，受控组件运行操作由后端授权和执行。'],
+  audit:['权限审计','权限审计','读取当前账号的真实权限与两类审计记录；不提供授权编辑。']
+};
+const obj = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+const validHash = value => typeof value === 'string' && /^[a-fA-F0-9]{64}$/.test(value);
+const printable = value => value === undefined || value === null ? '未采样' : typeof value === 'string' ? value : JSON.stringify(value, null, 2);
+const bounded = value => String(value || '未知错误').replace(/[\u0000-\u001f\u007f]/g, ' ').slice(0, 260);
+const node = (tag, text, className) => {const n=document.createElement(tag); if(text!==undefined)n.textContent=printable(text);if(className)n.className=className;return n;};
+function setMessage(id, text, error=false){$(id).textContent=bounded(text);if(id==='global-status')$(id).classList.toggle('error',error);}
+function has(permission){return Boolean(token && user && Array.isArray(user.permissions) && user.permissions.includes(permission));}
+// No implicit privileges from a role, username or an unknown permission.
+function canWritePolicy(){return has('configure');}
+function canReviewPolicy(){return has('review');}
+function canActivatePolicy(){return has('configure');}
+function currentComponent(){return components.find(c=>c.id===selectedComponent)||null;}
+function runtimeName(c){return !c ? '' : typeof c.runtime==='string' ? c.runtime : obj(c.runtime) && typeof c.runtime.name==='string' ? c.runtime.name : typeof c.runtime_id==='string' ? c.runtime_id : '';}
+function isShared(c){return Boolean(c && (runtimeName(c)==='backend' || SHARED.some(s=>s[0]===c.id)));}
+function currentGuard(ctx){return ctx.epoch===epoch && scopes.get(ctx.key)===ctx.serial;}
+function assertCurrent(ctx){if(!currentGuard(ctx)){const e=new Error('旧请求已丢弃');e.stale=true;throw e;}}
+function invalidate(keys){for(const key of keys){scopes.set(key,(scopes.get(key)||0)+1);const entry=pending.get(key);if(entry){for(const c of entry.controllers)c.abort();pending.delete(key);}}}
+function anyBusy(){return pending.size>0;}
+function mutationBusy(){return ['policy-write','dev-write','action','release-write'].some(k=>pending.has(k));}
+async function task(key,status,work){
+  if(pending.has(key))return;
+  const ctx={epoch,key,serial:(scopes.get(key)||0)+1,controllers:new Set()};
+  scopes.set(key,ctx.serial);pending.set(key,ctx);syncControls();
+  setMessage(status,'正在请求服务端…');
+  try{await work(ctx);assertCurrent(ctx);}
+  catch(e){if(currentGuard(ctx)){
+    if((e.status===401 || e.status===403) && token){const code=e.status;resetSession();setMessage('auth-status','HTTP '+code+'：身份或权限被拒绝，凭证及所有页面数据已清空，请重新登录。',true);setMessage('global-status','HTTP '+code+'：服务端拒绝当前会话；未继续执行，无过期数据显示。',true);}
+    else {const detail=(e.status===409?'版本 / 哈希冲突：请重新读取服务端版本。 ':e.blocked?'执行被阻止，未部署、未受理部署。 ':'')+e.message;setMessage(status,detail,true);setMessage('global-status',detail,true);}
+  }}
+  finally{if(currentGuard(ctx)){pending.delete(key);syncControls();}}
+}
+async function request(path,method,body,ctx,mode='json',credential=token){
+  assertCurrent(ctx);
+  const allowed=method==='GET'?/^\/api\/(auth\/me|manage\/(components|audit|report)|manage\/config\/revisions\?component=[^&#]*|dev\/workspaces\/[^/?#]+(\/file\?path=[^&#]*|\/diff)?|dev\/jobs(\/[^/?#]+)?|releases\/(versions(\/[0-9a-f]{32})?|plans(\/[0-9a-f]{32})?|requests|audit))$/.test(path):method==='POST'?/^\/api\/(auth\/(login|logout)|manage\/actions|manage\/config\/revisions(\/[^/?#]+\/(submit|review|activate))?|dev\/(workspaces|jobs)|releases\/(versions|plans|rollback-plans|plans\/[0-9a-f]{32}\/(submit|cancel|execute|review)))$/.test(path):method==='PATCH'?/^\/api\/(manage\/config\/revisions\/[^/?#]+|dev\/workspaces\/[^/?#]+\/file|releases\/plans\/[0-9a-f]{32})$/.test(path):false;
+  if(!allowed)throw new Error('请求方法或同源路由未登记');
+  const controller=new AbortController();controllers.add(controller);ctx.controllers.add(controller);
+  const headers={Accept:mode==='diff'?'application/json, text/plain':'application/json'};
+  if(credential)headers.Authorization='Bearer '+credential;
+  if(method!=='GET')headers['Content-Type']='application/json';
+  try{
+    const response=await fetch(path,{method,headers,body:method==='GET'?undefined:JSON.stringify(body||{}),credentials:'omit',cache:'no-store',redirect:'error',referrerPolicy:'no-referrer',signal:controller.signal});
+    assertCurrent(ctx);
+    const text=await response.text();assertCurrent(ctx);
+    if(text.length>2097152)throw new Error('服务端响应超过页面展示上限（2 MiB），未加载。');
+    let data;
+    try{data=text.trim()?JSON.parse(text):null;}catch(e){
+      if(response.ok && mode==='diff' && !(response.headers.get('content-type')||'').toLowerCase().includes('json'))data=text;
+      else {const error=new Error('HTTP '+response.status+'：响应不是有效 JSON，未将请求视为成功。');error.status=response.status;throw error;}
+    }
+    if(!response.ok){const error=new Error('HTTP '+response.status+'：'+bounded(obj(data)?data.detail||data.message||data.error:'请求失败'));error.status=response.status;error.data=data;throw error;}
+    if(data===null && mode!=='empty')throw new Error('服务端未返回所需数据，不能确认操作结果。');
+    return data;
+  }catch(e){
+    assertCurrent(ctx);
+    if(e instanceof TypeError)throw new Error('网络连接、同源访问或重定向失败；请求结果未确认，请手动刷新核验。');
+    if(e.name==='AbortError')throw new Error('请求已取消，未确认服务端结果。');
+    throw e;
+  }finally{controllers.delete(controller);ctx.controllers.delete(controller);}
+}
+function routeId(value){if(typeof value!=='string' || !value || value.length>160 || value==='.' || value==='..' || /[\u0000-\u001f]/.test(value))throw new Error('服务端记录 ID 无效');return encodeURIComponent(value);}
+function items(data,key){const list=Array.isArray(data)?data:obj(data)&&Array.isArray(data[key])?data[key]:null;if(!list||list.some(value=>!obj(value)))throw new Error('服务端 '+key+' 响应结构无效');return list;}
+function diffText(data){
+  if(typeof data==='string')return data;
+  if(obj(data)){if(typeof data.text==='string')return data.text;if(typeof data.diff==='string')return data.diff;if(Array.isArray(data.changes)&&data.changes.every(change=>obj(change)&&typeof change.diff==='string'))return data.changes.map(change=>change.diff).join('\n');}
+  throw new Error('差异响应不含可核验的纯文本，未显示伪造差异');
+}
+function ownerValue(value){if(obj(value))return value.id!==undefined?String(value.id):typeof value.name==='string'?value.name:'';return typeof value==='string'||typeof value==='number'?String(value):'';}
+function own(value){const id=ownerValue(value);return Boolean(user && id && (id===String(user.id)||id===user.name));}
+function authorOf(r){return r?(r.author!==undefined?r.author:r.owner!==undefined?r.owner:r.author_id!==undefined?r.author_id:r.owner_id):null;}
+function knownOwner(r){return Boolean(ownerValue(authorOf(r)));}
+function workspaceOwned(){return Boolean(workspace && own(workspace.owner!==undefined?workspace.owner:workspace.owner_id));}
+function versionOK(r){return Boolean(r && Number.isSafeInteger(r.version) && r.version>=0 && typeof r.id==='string');}
+function readReady(value){if(typeof value==='boolean')return value;if(obj(value)){if(typeof value.ready==='boolean')return value.ready;if(typeof value.available==='boolean')return value.available;}return null;}
+function readiness(keys){
+  const values=[];
+  for(const source of [serverCapabilities,limits,workspace])if(obj(source)){
+    for(const candidate of [source,obj(source.capabilities)?source.capabilities:null])if(candidate)for(const key of keys)if(key in candidate)values.push(readReady(candidate[key]));
+  }
+  if(values.includes(false))return false;
+  return values.includes(true)?true:null;
+}
+function builderReady(){return readiness(['isolated_builder_ready','builder_ready','isolated_builder','builder','build']);}
+function testReady(){return readiness(['isolated_test_ready','test_ready','isolated_test','test']);}
+function revisionState(r){return r?(typeof r.status==='string'?r.status:typeof r.state==='string'?r.state:''):'';}
+function fileEditable(){
+  if(!sourceFile || !currentComponent() || currentComponent().editable!==true || sourceFile.editable===false)return false;
+  const entry=workspace&&workspace.files.find(f=>obj(f)&&f.path===sourceFile.path);
+  return !entry || entry.editable!==false;
+}
+function activeFromComponent(c){
+  if(!c)return false;
+  const p=obj(c.active_policy)?c.active_policy:obj(c.active_revision)?c.active_revision:null;
+  const hash=p&&(p.hash||p.config_hash)||c.active_policy_hash||c.active_config_hash;
+  if(!validHash(hash))return false;
+  activeHash=hash;activeEnabled=p&&typeof p.enabled==='boolean'?p.enabled:p&&obj(p.config)&&typeof p.config.enabled==='boolean'?p.config.enabled:null;return true;
+}
+function observation(c){
+  if(!c)return null;
+  for(const value of [c.runtime_state,c.observation,c.runtime_observation,c.runtime_status,obj(c.runtime)?c.runtime:null])if(obj(value))return value;
+  return null;
+}
+function observedState(c){
+  const o=observation(c);if(!o || c.runtime_observed===false || o.sampled===false || o.observed===false)return ['未采样','',false];
+  const raw=typeof o.state==='string'?o.state:typeof o.status==='string'?o.status:typeof o.health==='string'?o.health:'';
+  const map={running:['运行中','ok'],healthy:['健康','ok'],ready:['就绪','ok'],stopped:['已停止',''],failed:['失败','bad'],unhealthy:['异常','bad'],degraded:['降级','warn'],starting:['启动中','warn'],stopping:['停止中','warn'],unavailable:['不可用','warn']};
+  const key=raw.toLowerCase();const match=Object.prototype.hasOwnProperty.call(map,key)?map[key]:null;
+  if(match&&match[1]==='ok'&&o.running===false)return ['未采样','',false];
+  return match?[...match,true]:['未采样','',false];
+}
+function metricValue(c,kind){
+  const o=observation(c);if(!o || c.runtime_observed===false || o.sampled===false || o.observed===false)return '未采样';
+  const m=obj(o.metrics)?o.metrics:obj(o.resources)?o.resources:o;
+  const keys=kind==='cpu'?['cpu_percent','cpu_usage_percent','cpu']:['memory_mb','memory_bytes','memory'];
+  for(const key of keys){const v=m[key];if(typeof v==='number' && Number.isFinite(v) && v>=0){return String(v)+(key.endsWith('percent')?' %':key==='memory_mb'?' MB':key==='memory_bytes'?' B':'');}if(obj(v) && typeof v.value==='number' && Number.isFinite(v.value) && v.value>=0 && typeof v.unit==='string')return String(v.value)+' '+v.unit.slice(0,20);}
+  return '未采样';
+}
+function statusBadge(raw,kind='revision'){
+  const maps=kind==='job'?{queued:['排队中',''],pending:['等待中',''],running:['执行中','blue'],succeeded:['成功','ok'],passed:['通过','ok'],failed:['失败','bad'],rejected:['已拒绝','bad'],cancelled:['已取消',''],blocked:['被阻止','warn']}:{draft:['草稿',''],submitted:['待审核','warn'],pending_review:['待审核','warn'],approved:['已批准','blue'],rejected:['已驳回','bad'],active:['active · 当前策略','blue'],activated:['已激活记录','blue'],superseded:['已替代','']};
+  const match=typeof raw==='string'&&Object.prototype.hasOwnProperty.call(maps,raw)?maps[raw]:null;return node('span',match?match[0]:raw?bounded(raw):'未采样','badge'+(match&&match[1]?' '+match[1]:''));
+}
+function empty(parent,text){parent.replaceChildren(node('div',text,'empty'));}
+function metadata(parent,pairs){parent.replaceChildren();for(const [title,value,wide] of pairs){const wrap=node('div',undefined,wide?'wide':'');wrap.append(node('dt',title),node('dd',value,title.includes('哈希')||title.includes('SHA')?'hash':''));parent.append(wrap);}}
+const RELEASE_FIELDS = {
+  manifest:['component','runtime','label','source_sha256','artifact_sha256','config_revision','config_sha256','test_evidence_sha256','build_evidence_sha256','image_digest','schema_version','previous_version'],
+  plan:['version_id','planned_at','expires_at','dependencies','prechecks','strategy'],
+  prechecks:['health_sha256','capacity_sha256','baseline_sha256','backup_sha256'],
+  rollback:['version_id','current_version_id','window'],window:['planned_at','expires_at']
+};
+const MANIFEST_PLACEHOLDER = JSON.stringify({component:'填写真实登记组件 ID',runtime:'填写真实运行归属',label:'填写实际语义版本',source_sha256:'真实源码摘要，不自动生成',artifact_sha256:'真实产物摘要',config_revision:'独立审核的控制策略 ID',config_sha256:'真实控制策略摘要',test_evidence_sha256:'真实测试报告摘要',build_evidence_sha256:'真实构建报告摘要',image_digest:null,schema_version:null,previous_version:null},null,2);
+const PLAN_PLACEHOLDER = JSON.stringify({version_id:'填写真实版本 ID',planned_at:null,expires_at:null,dependencies:[],prechecks:{health_sha256:null,capacity_sha256:null,baseline_sha256:null,backup_sha256:null},strategy:'serial-app-slot'},null,2);
+const ROLLBACK_PLACEHOLDER = JSON.stringify({version_id:'填写真实回滚目标版本 ID',current_version_id:'填写真实当前基线版本 ID',window:{planned_at:null,expires_at:null}},null,2);
+let planDirty = false;
+function releaseId(value){if(typeof value!=='string'||!/^[0-9a-f]{32}$/.test(value))throw new Error('需要真实服务端 32 位版本 / 计划 ID');return value;}
+function exactFields(value,kind){const fields=RELEASE_FIELDS[kind];if(!obj(value)||Object.keys(value).length!==fields.length||fields.some(k=>!Object.prototype.hasOwnProperty.call(value,k)))throw new Error('JSON 必须且只能包含固定 '+kind+' 字段：'+fields.join(', '));return value;}
+function releaseHash(value,nullable=false){if(nullable&&value===null)return;if(typeof value!=='string'||!/^[0-9a-f]{64}$/.test(value))throw new Error('摘要须为真实的小写 64 位十六进制值；占位说明不能提交');}
+function windowInput(value){exactFields(value,'window');if(!Number.isSafeInteger(value.planned_at)||value.planned_at<=0||!Number.isSafeInteger(value.expires_at)||value.expires_at<=value.planned_at)throw new Error('窗口需有效 UTC Unix 秒正整数，结束必须晚于开始；有效期由服务端验证');}
+function editorJSON(id,kind){
+  const text=$(id).value.trim();if(!text)throw new Error('请填写真实 '+kind+' JSON；占位说明不会自动提交');
+  if(new TextEncoder().encode(text).length>60000)throw new Error('JSON 超过请求大小限制');
+  let value;try{value=JSON.parse(text);}catch(e){throw new Error('编辑内容不是有效 JSON');}exactFields(value,kind);
+  if(kind==='manifest'){
+    for(const k of ['source_sha256','artifact_sha256','config_sha256','test_evidence_sha256','build_evidence_sha256'])releaseHash(value[k]);
+    releaseId(value.config_revision);if(value.previous_version!==null)releaseId(value.previous_version);
+    if(value.image_digest!==null&&(typeof value.image_digest!=='string'||!/^sha256:[0-9a-f]{64}$/.test(value.image_digest)))throw new Error('image_digest 需真实 sha256: 摘要或 null');
+    if(!Number.isSafeInteger(value.schema_version)||value.schema_version<1)throw new Error('schema_version 需实际正整数');
+    if(typeof value.label!=='string'||!/^r?[0-9]{1,4}\.[0-9]{1,4}\.[0-9]{1,4}(?:-[a-z0-9]{1,16})?$/.test(value.label))throw new Error('label 需实际语义版本');
+    const c=components.find(c=>c.id===value.component);if(!c||c.editable!==true||runtimeName(c)!==value.runtime)throw new Error('component / runtime 必须匹配服务端允许开发的真实登记');
+  }else if(kind==='plan'){
+    releaseId(value.version_id);windowInput({planned_at:value.planned_at,expires_at:value.expires_at});exactFields(value.prechecks,'prechecks');
+    for(const k of RELEASE_FIELDS.prechecks)releaseHash(value.prechecks[k],true);
+    if(!Array.isArray(value.dependencies)||value.dependencies.length>32)throw new Error('dependencies 必须是至多 32 个真实版本 ID 的数组');
+    value.dependencies.forEach(releaseId);if(new Set(value.dependencies).size!==value.dependencies.length)throw new Error('dependencies 不可重复');
+    if(value.strategy!=='serial-app-slot')throw new Error('仅支持 serial-app-slot，不支持蓝绿或模型滚动发布');
+  }else if(kind==='rollback'){releaseId(value.version_id);releaseId(value.current_version_id);windowInput(value.window);}
+  return value;
+}
+function releaseRecord(data,key,id){const r=obj(data)&&obj(data[key])?data[key]:data;if(!obj(r))throw new Error('服务端 '+key+' 响应无效');releaseId(r.id);if(id&&r.id!==id)throw new Error('服务端 '+key+' ID 与请求不一致');if(key==='plan'&&(!versionOK(r)||r.version<1||!obj(r.payload)))throw new Error('计划缺少真实 version / payload');return r;}
+function releaseOwned(p){return Boolean(user&&p&&typeof p.owner==='string'&&p.owner===String(user.id));}
+function releaseCreator(v){return v&&typeof v.createdby==='string'&&v.createdby?v.createdby:'';}
+function blockerText(r){return r?'服务端状态 · '+printable(r.status||r.state)+'；execution_ready · '+printable(r.execution_ready)+'；deployed · '+printable(r.deployed)+'\n阻断项 · '+printable(r.blockers)+'\n主要阻断 · '+printable(r.blocker):'未采样 · 无执行就绪证明';}
+function clearPlanDetail(clearEditor=true){releasePlan=null;planVersion=null;planFresh=false;planDirty=false;$('plan-data').textContent='未采样 · 请重读计划';$('plan-blockers').textContent=blockerText(null);if(clearEditor)$('plan-editor').value='';$('plan-editor-title').textContent=selectedPlan?'选中计划 · 请重读服务端版本':'新建发布计划';}
+function clearReleaseData(){
+  invalidate(['release-versions','release-version','release-plans','release-plan','release-write','release-requests']);
+  releaseVersions=[];releaseVersion=null;selectedVersion='';releasePlans=[];selectedPlan='';releaseRequests=null;clearPlanDetail();
+  empty($('version-list'),'未采样 · 无预置版本');empty($('plan-list'),'未采样 · 无预置计划');$('version-data').textContent='未采样 · 未选择版本';$('version-blockers').textContent='未核验；不能把摘要登记视为验证。';
+  for(const id of ['manifest-editor','rollback-editor'])$(id).value='';
+  for(const id of ['version-result','plan-result','rollback-result'])$(id).textContent='尚无服务端写入响应';$('release-requests-data').textContent='未采样 · 尚未读取执行请求';
+  for(const id of ['versions-status','version-write-status','plans-status','plan-write-status','rollback-status','release-requests-status'])$(id).textContent='';
+}
+function clearAuditReport(){
+  invalidate(['report','cp-audit','release-audit','audit-account']);releaseAudit=null;cpAudit=null;reportSnapshot=null;accountDetails=null;
+  for(const id of ['report-data','cp-audit-data','release-audit-data','audit-account-data'])$(id).textContent='未采样 · 尚未读取服务端数据';
+  for(const id of ['report-status','cp-audit-status','release-audit-status','audit-account-status'])$(id).textContent='';
+}
+function renderReleaseList(kind){
+  const versions=kind==='version', records=versions?releaseVersions:releasePlans, selected=versions?selectedVersion:selectedPlan, list=$(kind+'-list');list.replaceChildren();
+  if(!records.length){empty(list,'服务端未返回'+(versions?'版本':'计划')+'记录。');return;}
+  for(const r of records){
+    const b=node('button',undefined,'list-item');b.type='button';b.setAttribute('aria-pressed',String(r.id===selected));
+    const top=node('div',undefined,'item-top');top.append(node('span',versions?r.label:'计划版本 '+printable(r.version),'item-title'),statusBadge(r.status||r.state));
+    b.append(top,node('p','ID · '+printable(r.id),'mono'),node('p',versions?'注册者 · '+printable(r.createdby):'作者 · '+printable(r.owner)),node('div','哈希 · '+printable(r.hash),'hash'),node('p',blockerText(r)));
+    b.addEventListener('click',()=>{if(anyBusy()||!has('view'))return;if(versions){selectedVersion=r.id;void refreshReleaseVersion();}else{selectedPlan=r.id;void refreshReleasePlan();}});list.append(b);
+  }
+}
+function planInputFromPayload(p){return {version_id:p.version_id,planned_at:p.planned_at,expires_at:p.expires_at,dependencies:Array.isArray(p.dependencies)?p.dependencies.map(d=>obj(d)?d.version_id:d):p.dependencies,prechecks:p.prechecks,strategy:p.strategy};}
+async function loadReleaseVersion(ctx,id){const data=await request('/api/releases/versions/'+releaseId(id),'GET',undefined,ctx);assertCurrent(ctx);releaseVersion=releaseRecord(data,'version',id);$('version-data').textContent=printable(releaseVersion);$('version-blockers').textContent=blockerText(releaseVersion);}
+async function loadReleasePlan(ctx,id){
+  const data=await request('/api/releases/plans/'+releaseId(id),'GET',undefined,ctx);assertCurrent(ctx);const p=releaseRecord(data,'plan',id);
+  const vdata=await request('/api/releases/versions/'+releaseId(p.payload.version_id),'GET',undefined,ctx);assertCurrent(ctx);const v=releaseRecord(vdata,'version',p.payload.version_id);
+  releasePlan=p;planVersion=v;planFresh=true;planDirty=false;$('plan-data').textContent=printable(p);$('plan-blockers').textContent=blockerText(p);$('plan-editor-title').textContent=p.payload.kind==='release'?'发布计划 · expected_version '+p.version:'回滚计划 · 不可编辑';
+  $('plan-editor').value=p.payload.kind==='release'?JSON.stringify(planInputFromPayload(p.payload),null,2):'';
+}
+async function refreshReleaseVersion(){
+  if(!has('view')||anyBusy()||!selectedVersion)return;invalidate(['release-version']);releaseVersion=null;$('version-data').textContent='未采样 · 正在重读版本';$('version-blockers').textContent=blockerText(null);renderReleaseList('version');
+  await task('release-version','versions-status',async ctx=>{await loadReleaseVersion(ctx,selectedVersion);assertCurrent(ctx);setMessage('versions-status','已读取真实版本；登记 / 本地产物验证均不代表部署。');});
+}
+async function refreshReleasePlan(){
+  if(!has('view')||anyBusy()||!selectedPlan)return;invalidate(['release-plan']);clearPlanDetail();renderReleaseList('plan');
+  await task('release-plan','plans-status',async ctx=>{await loadReleasePlan(ctx,selectedPlan);assertCurrent(ctx);setMessage('plans-status','已重读计划和绑定版本。写入携带当前 expected_version；重读会丢弃本地计划 JSON。');});
+}
+async function refreshReleaseList(kind){
+  if(!has('view')||anyBusy())return;const versions=kind==='version';
+  if(versions){releaseVersions=[];releaseVersion=null;$('version-data').textContent='未采样 · 列表刷新中';$('version-blockers').textContent=blockerText(null);empty($('version-list'),'未采样 · 正在读取版本');}
+  else {releasePlans=[];clearPlanDetail();empty($('plan-list'),'未采样 · 正在读取计划');}
+  await task(versions?'release-versions':'release-plans',versions?'versions-status':'plans-status',async ctx=>{
+    const data=await request('/api/releases/'+(versions?'versions':'plans'),'GET',undefined,ctx);assertCurrent(ctx);const records=items(data,versions?'versions':'plans');for(const r of records)releaseRecord(r,kind);
+    if(versions){releaseVersions=records;if(selectedVersion&&!records.some(r=>r.id===selectedVersion))selectedVersion='';renderReleaseList(kind);if(selectedVersion){await loadReleaseVersion(ctx,selectedVersion);assertCurrent(ctx);}}
+    else {releasePlans=records;if(selectedPlan&&!records.some(r=>r.id===selectedPlan))selectedPlan='';renderReleaseList(kind);if(selectedPlan){await loadReleasePlan(ctx,selectedPlan);assertCurrent(ctx);}}
+    setMessage(versions?'versions-status':'plans-status','已读取 '+records.length+' 条真实'+(versions?'版本':'计划')+'记录；没有自动执行或轮询。');
+  });
+}
+function syncReleaseControls(){
+  const busy=anyBusy(), develop=has('develop'), p=releasePlan, state=p&&(p.status||p.state), owned=releaseOwned(p), ready=Boolean(planFresh&&versionOK(p)&&p.version>0), creator=releaseCreator(planVersion), id=user?String(user.id):'';
+  for(const b of ['versions-refresh','plans-refresh','release-requests-refresh','report-refresh','cp-audit-refresh','release-audit-refresh'])$(b).disabled=!has('view')||busy;
+  $('audit-account-refresh').disabled=!token||!user||busy;
+  $('version-refresh').disabled=!has('view')||!selectedVersion||busy;$('plan-refresh').disabled=!has('view')||!selectedPlan||busy;
+  $('manifest-editor').disabled=!develop||busy;$('version-register').disabled=!develop||busy||!components.some(c=>c.editable===true);
+  $('rollback-editor').disabled=!develop||busy;$('rollback-create').disabled=!develop||busy;
+  $('plan-new').disabled=!develop||busy;$('plan-create').disabled=!develop||busy||Boolean(selectedPlan);
+  const editable=develop&&ready&&owned&&state==='draft'&&p.payload.kind==='release';
+  $('plan-editor').disabled=busy||!develop||(selectedPlan&&!editable);$('plan-save').disabled=!editable||busy||!planDirty;
+  $('plan-submit').disabled=!develop||!ready||!owned||state!=='draft'||busy||planDirty;
+  $('plan-cancel').disabled=!develop||!ready||!owned||!['draft','submitted','approved'].includes(state)||busy;
+  const independent=ready&&creator&&typeof p.owner==='string'&&p.owner&&id!==p.owner&&id!==creator;
+  const review=has('review')&&independent&&state==='submitted'&&!busy;
+  $('plan-approve').disabled=!review;$('plan-reject').disabled=!review;
+  const w=p&&p.payload, now=Math.floor(Date.now()/1000), inWindow=w&&Number.isSafeInteger(w.planned_at)&&Number.isSafeInteger(w.expires_at)&&now>=w.planned_at&&now<w.expires_at;
+  const execution=has('operate')&&independent&&typeof p.reviewer==='string'&&p.reviewer&&id!==p.reviewer&&p.reviewer!==p.owner&&p.reviewer!==creator&&state==='approved'&&validHash(p.hash)&&p.approved_hash===p.hash&&p.execution_ready===true&&planVersion.execution_ready===true&&!p.blocker&&!planVersion.blocker&&Array.isArray(p.blockers)&&!p.blockers.length&&Array.isArray(planVersion.blockers)&&!planVersion.blockers.length&&inWindow&&!planDirty&&!busy;
+  $('plan-execute').disabled=!execution;
+  $('plan-gate').textContent=!token?'未登录：所有发布写入已禁用。':!p||!planFresh?'请选择并重读真实计划及绑定版本；未知身份 / 版本时关闭写入。':p.execution_ready!==true?'服务端 execution_ready 未明确为 true：执行已禁用，无部署受理。作者需 develop；独立审核需 review；阻断原文见上方。':planDirty?'本地计划 JSON 未保存：不能提交或执行，先保存或重读。':'仅真实权限与独立账号可操作；execute 还须批准哈希一致、双方明确就绪、无阻断且在手动窗口内。服务端最终复核。';
+  for(const b of document.querySelectorAll('#version-list button, #plan-list button'))b.disabled=busy||!has('view');
+}
+async function writeRelease(kind,decision){
+  syncControls();
+  const buttons={register:'version-register',create:'plan-create',save:'plan-save',submit:'plan-submit',review:decision==='approve'?'plan-approve':'plan-reject',cancel:'plan-cancel',execute:'plan-execute',rollback:'rollback-create'};
+  if(!buttons[kind]||$(buttons[kind]).disabled||anyBusy())return;
+  const p=releasePlan,status=kind==='register'?'version-write-status':kind==='rollback'?'rollback-status':'plan-write-status', resultId=kind==='register'?'version-result':kind==='rollback'?'rollback-result':'plan-result';
+  if(kind==='execute'){
+    const w=p.payload, utc=n=>new Date(n*1000).toISOString();
+    if(!window.confirm('确认以独立操作员 '+user.name+'（ID '+user.id+'）请求执行？\n计划 '+p.id+' / expected_version '+p.version+'\nUTC 窗口 '+utc(w.planned_at)+' 至 '+utc(w.expires_at)+'\n运行归属 '+printable(w.runtime)+'；共享 backend 会影响六类应用。\n服务端复核身份、窗口和就绪。503 表示阻止，绝不代表部署成功或部署已受理。'))return;
+  }
+  await task('release-write',status,async ctx=>{
+    let path='/api/releases/',method='POST',body;
+    if(kind==='register'){path+='versions';body={manifest:editorJSON('manifest-editor','manifest')};}
+    else if(kind==='create'){path+='plans';body={plan:editorJSON('plan-editor','plan')};}
+    else if(kind==='rollback'){path+='rollback-plans';body=editorJSON('rollback-editor','rollback');}
+    else {if(!planFresh||!versionOK(p))throw new Error('缺少当前服务端计划版本，必须重读');path+='plans/'+releaseId(p.id);body={expected_version:p.version};if(kind==='save'){method='PATCH';body.plan=editorJSON('plan-editor','plan');}else {path+='/'+kind;if(kind==='review')body.decision=decision;}}
+    $(resultId).textContent='尚未确认 · 正在提交';
+    if(kind!=='register'){planFresh=false;planVersion=null;releasePlans=[];empty($('plan-list'),'计划可能变更 · 请刷新核验');$('plan-data').textContent='旧版本已失效 · 正在请求服务端';$('plan-blockers').textContent=blockerText(null);}
+    releaseRequests=null;releaseAudit=null;cpAudit=null;reportSnapshot=null;
+    for(const id of ['release-requests-data','release-audit-data','cp-audit-data','report-data'])$(id).textContent='变更后数据未采样 · 请手动刷新';
+    try{
+      const data=await request(path,method,body,ctx);assertCurrent(ctx);const r=releaseRecord(data,kind==='register'?'version':'plan',p&&!['register','create','rollback'].includes(kind)?p.id:undefined);
+      $(resultId).textContent=printable(r);
+      if(kind==='register'){selectedVersion=r.id;releaseVersion=r;$('version-data').textContent=printable(r);$('version-blockers').textContent=blockerText(r);releaseVersions=[];empty($('version-list'),'注册已返回 · 请刷新真实版本列表');}
+      else {selectedPlan=r.id;releasePlan=r;$('plan-data').textContent=printable(r);$('plan-blockers').textContent=blockerText(r);if(has('view')){await loadReleasePlan(ctx,r.id);assertCurrent(ctx);}}
+      setMessage(status,kind==='register'?'服务端已返回不可变版本登记；摘要不是验证，未部署。':kind==='execute'?'已读取服务端执行请求结果；不宣称部署成功或验收通过。':'服务端已返回计划变更；只改变发布 / 回滚工作流，未部署。');
+      setMessage('global-status','发布工作流响应已读取；是否验证 / 部署仅以服务端真实字段为准，不能把登记或审核视为部署受理。');
+    }catch(e){if(currentGuard(ctx)){
+      if(kind!=='register'){planFresh=false;planVersion=null;releasePlan=null;$('plan-data').textContent='请求结果未确认 · 请重读服务端计划与请求记录';$('plan-blockers').textContent=blockerText(null);}
+      $(resultId).textContent='HTTP / 网络请求未成功，未确认变更。\n'+(e.data!==undefined?printable(e.data):e.message);
+      if(kind==='execute'&&e.status===503){e.blocked=true;$('plan-blockers').textContent='HTTP 503 · 执行被阻止，未部署、未受理部署。\n'+(e.data!==undefined?printable(e.data):e.message)+'\n请手动重读计划与执行请求，查看持久化阻断记录；不要重复提交旧版本。';}
+    }throw e;}
+  });
+}
+async function readSnapshot(kind){
+  const spec={report:['report','report-data','report-status','/api/manage/report'],cp:['cp-audit','cp-audit-data','cp-audit-status','/api/manage/audit'],release:['release-audit','release-audit-data','release-audit-status','/api/releases/audit'],requests:['release-requests','release-requests-data','release-requests-status','/api/releases/requests']}[kind];
+  if(!spec||!has('view')||anyBusy())return;const [key,display,status,path]=spec;
+  if(kind==='report')reportSnapshot=null;else if(kind==='cp')cpAudit=null;else if(kind==='release')releaseAudit=null;else releaseRequests=null;
+  $(display).textContent='未采样 · 正在读取服务端';
+  await task(key,status,async ctx=>{const data=await request(path,'GET',undefined,ctx);assertCurrent(ctx);if(!obj(data)&&!Array.isArray(data))throw new Error('服务端快照 / 记录响应结构无效');
+    if(kind==='report')reportSnapshot=data;else if(kind==='cp')cpAudit=data;else if(kind==='release')releaseAudit=data;else releaseRequests=data;
+    $(display).textContent=printable(data);setMessage(status,kind==='report'?'已读取实际当前快照；没有历史趋势或告警能力。':'已读取实际服务端记录；无样例事件，无部署受理推断。');
+  });
+}
+async function readAccountDetails(){
+  if(!token||!user||anyBusy())return;const originalId=String(user.id);user={...user,permissions:[]};clearReleaseData();clearAuditReport();renderIdentity();
+  await task('audit-account','audit-account-status',async ctx=>{const data=await request('/api/auth/me','GET',undefined,ctx);assertCurrent(ctx);const identity=parseUser(data);
+    if(String(identity.id)!==originalId){resetSession();setMessage('auth-status','当前账号已变化，所有数据已清空，请重新登录。',true);return;}
+    user=identity;accountDetails=data;$('audit-account-data').textContent=printable(data);renderIdentity();setMessage('audit-account-status','当前账号详情与权限来自 /api/auth/me；不提供授权编辑。');
+  });
+}
+function clearJobs(){invalidate(['jobs','job']);jobs=[];selectedJob='';job=null;empty($('job-list'),'未采样 · 手动读取服务端任务');metadata($('job-meta'),[['任务状态','未采样']]);$('job-log').textContent='未采样 · 未选择任务';$('jobs-status').textContent='';$('job-status').textContent='';}
+function clearFile(){sourceFile=null;dirty=false;conflict=false;$('source-editor').value='';$('source-label').textContent='选中文件的源码';$('file-hash').textContent='未采样';$('source-diff').textContent='未采样 · 尚未请求差异';$('dev-status').textContent='';}
+function clearWorkspace(){invalidate(['workspace','file','diff','dev-write']);workspace=null;files=[];expectedHash='';clearFile();clearJobs();$('file-select').replaceChildren(node('option','尚未读取文件清单'));metadata($('workspace-meta'),[['工作区','未采样']]);}
+function clearPolicy(){invalidate(['revisions','policy-write']);revisions=[];revision=null;activeHash='';activeEnabled=null;empty($('revision-list'),'未采样 · 选择组件后手动读取修订');$('revision-status').textContent='';resetPolicyForm();}
+function resetPolicyForm(){revision=null;$('policy-editor-title').textContent='新建策略草稿';$('policy-enabled').checked=false;$('policy-timeout').value='30';metadata($('revision-meta'),[['修订','本地新草稿表单，尚未写入服务端']]);syncControls();}
+function resetSession(){
+  epoch++;for(const c of controllers)c.abort();controllers.clear();pending.clear();
+  token='';user=null;expires=null;components=[];limits=null;serverCapabilities=null;sampled=false;selectedComponent='';
+  clearReleaseData();clearAuditReport();clearPolicy();clearWorkspace();invalidate(['components','identity','auth','action']);
+  $('login-name').value='';$('login-password').value='';$('component-select').replaceChildren(node('option','登录后读取服务端组件登记'));$('component-context').textContent='目录、运行归属与可编辑范围以服务端登记为准。';
+  $('auth-status').textContent='未登录。会话凭证与源码、差异、日志及 API 数据均已清空。';$('action-status').textContent='';
+  renderIdentity();renderComponents();setMessage('global-status','尚未请求 API。全部运行状态与资源数据默认「未采样」。');syncControls();
+}
+function parseUser(data){const candidate=obj(data)&&obj(data.user)?data.user:data;if(!obj(candidate) || typeof candidate.name!=='string' || candidate.id===undefined || !Array.isArray(candidate.permissions) || !candidate.permissions.every(p=>typeof p==='string'))throw new Error('身份响应缺少 id、name 或 permissions；未授予页面操作权限。');return {id:candidate.id,name:candidate.name,permissions:candidate.permissions.slice()};}
+function renderIdentity(){
+  $('login-form').hidden=Boolean(token);$('session-info').hidden=!token;$('session-label').textContent=token?'已认证':'未登录';
+  $('identity-name').textContent=user?user.name:'未登录';$('identity-id').textContent=user?'ID · '+printable(user.id):'';$('identity-expires').textContent=token?'服务端到期值 · '+printable(expires):'';
+  $('permissions').replaceChildren();if(user)for(const p of user.permissions)$('permissions').append(node('span',p,'badge blue'));if(user && !user.permissions.length)$('permissions').append(node('span','无写入权限','badge'));
+}
+function componentCard(c,placeholder=false){
+  const card=node('article',undefined,'component-card'),top=node('div',undefined,'card-title'),name=node('div');
+  name.append(node('h3',c.title||c.id),node('div',c.id,'component-id mono'));const state=placeholder?['未采样','',false]:observedState(c);
+  top.append(name,node('span',state[0],'badge'+(state[1]?' '+state[1]:'')));card.append(top);
+  const data=node('dl');const fields=[['运行归属',isShared(c)?'backend · 六应用共享':runtimeName(c)||'未登记'],['健康端口',c.health_port!==undefined&&c.health_port!==null?c.health_port:'未登记'],['源码目录',c.directory||'不可编辑 / 未登记'],['源码编辑',placeholder?'未采样':c.editable===true?'服务端允许':c.editable===false?'不允许':'未采样']];
+  for(const [title,value]of fields){const wrap=node('div');wrap.append(node('dt',title),node('dd',value));data.append(wrap);}card.append(data,node('p',c.limitation||'服务端未说明能力边界；不能据此认定功能受支持。','boundary'));
+  const o=placeholder?null:observation(c);if(o){const details=node('details');details.append(node('summary','查看服务端运行观测原文'),node('pre',printable(o)));card.append(details);}return card;
+}
+function renderComponents(){
+  $('application-cards').replaceChildren();for(const [id,title,limitation]of SHARED){const c=components.find(item=>item.id===id);$('application-cards').append(componentCard(c||{id,title,limitation,runtime:'backend',directory:''},!c));}
+  for(const c of components.filter(c=>c.group==='application'&&!SHARED.some(s=>s[0]===c.id)))$('application-cards').append(componentCard(c));
+  const others=components.filter(c=>c.group!=='application'&&!SHARED.some(s=>s[0]===c.id));$('other-cards').replaceChildren();if(!others.length)empty($('other-cards'),sampled?'服务端没有返回其他登记组件。':'登录并刷新后展示服务端登记；不预置运行成功状态。');else for(const c of others)$('other-cards').append(componentCard(c));
+  const count=components.filter(c=>observedState(c)[2]).length;$('metric-observed').textContent=sampled&&count?count+' / '+components.length:'未采样';
+  $('sample-note').textContent=sampled?'服务端已响应 · '+count+' 个明确运行观测；无采样时间不推断新鲜度':'未采样 · 没有后台轮询';
+  $('server-limits').textContent=limits===null?'未采样':printable(limits);renderMetrics();
+}
+function renderMetrics(){
+  const c=currentComponent();$('metric-cpu').textContent=metricValue(c,'cpu');$('metric-memory').textContent=metricValue(c,'memory');
+  const ready=builderReady();$('metric-builder').textContent=ready===true?'已确认就绪':ready===false?'不可用':'未采样';
+  const text=ready===true?'服务端确认独立隔离构建器就绪；仍须权限与有效工作区哈希。':ready===false?'服务端明确未提供就绪的独立隔离构建器：不能构建。':'未采样：服务端尚未确认独立隔离构建器就绪，构建按失败关闭原则禁用。';
+  $('builder-boundary').textContent=text;$('build-gate').textContent=text;
+  $('test-gate').textContent=testReady()===false?'服务端明确隔离测试器未就绪，测试已禁用。':testReady()===true?'服务端确认隔离测试能力；任务仍由后端验证哈希、可信夹具与权限。':'隔离测试就绪状态未采样。可提交准入请求；未配置隔离执行器时服务端必须明确拒绝，不回退到共享业务服务。';
+}
+function syncControls(){
+  const authenticated=Boolean(token&&user), busy=anyBusy(), mutating=mutationBusy(), c=currentComponent();
+  $('login-button').disabled=pending.has('auth');$('login-name').disabled=pending.has('auth');$('login-password').disabled=pending.has('auth');
+  $('identity-refresh').disabled=!authenticated||busy;$('logout-button').disabled=!token&&!pending.has('auth');
+  $('logout-button').textContent=!token&&pending.has('auth')?'取消登录 / 清空':'退出 / 清空';
+  $('components-refresh').disabled=!has('view')||busy;$('component-select').disabled=!authenticated||!components.length||mutating;
+  for(const id of ['revisions-refresh','action-policy-refresh'])$(id).disabled=!has('view')||!c||busy;
+  const r=revision, state=revisionState(r), editable=Boolean(r&&state==='draft'&&own(authorOf(r))), valid=versionOK(r);
+  const policyInput=authenticated&&c&&canWritePolicy()&&(!r||editable)&&!busy;
+  $('policy-enabled').disabled=!policyInput;$('policy-timeout').disabled=!policyInput;$('draft-new').disabled=!authenticated||!c||busy;
+  $('policy-create').disabled=!policyInput||Boolean(r);$('policy-save').disabled=!policyInput||!valid||!editable;
+  $('policy-submit').disabled=!authenticated||!c||!canWritePolicy()||!valid||!editable||busy;
+  const reviewAllowed=authenticated&&canReviewPolicy()&&valid&&['submitted','pending_review'].includes(state)&&knownOwner(r)&&!own(authorOf(r))&&!busy;
+  $('policy-approve').disabled=!reviewAllowed;$('policy-reject').disabled=!reviewAllowed;
+  $('policy-activate').disabled=!authenticated||!canActivatePolicy()||!valid||state!=='approved'||busy;
+  $('policy-gate').textContent=!authenticated?'未登录：所有策略写入操作已禁用。':!c?'先读取并选择服务端登记组件。':!canWritePolicy()?'没有 configure 权限；只能使用服务端明确授予的 review 审核权限。':r&&own(authorOf(r))?'当前用户是作者，不能自行审核；独立人员须在服务端完成审核。':'仅作者可编辑或提交草稿；已审核内容不可修改。审核需 review，激活需 configure，服务端复核独立审核。';
+  const develop=has('develop'), wsValid=Boolean(workspace&&typeof workspace.id==='string'), owned=workspaceOwned();
+  $('workspace-create').disabled=!authenticated||!c||c.editable!==true||!develop||busy;
+  $('workspace-refresh').disabled=!develop||!wsValid||busy||dirty;
+  $('file-select').disabled=!develop||!wsValid||!files.length||busy||dirty;
+  $('file-reload').disabled=!develop||!wsValid||!$('file-select').value||busy;
+  $('file-reload').textContent=dirty||conflict?'丢弃本地修改并重读':'读取选中文件';
+  $('diff-refresh').disabled=!develop||!wsValid||busy;
+  $('source-editor').disabled=!authenticated||!sourceFile||!develop||!owned||!fileEditable()||conflict||busy;
+  $('file-save').disabled=!authenticated||!sourceFile||!dirty||conflict||!validHash(sourceFile.sha256)||!owned||!develop||!fileEditable()||busy;
+  const execute=authenticated&&wsValid&&owned&&develop&&validHash(expectedHash)&&!dirty&&!conflict&&!busy;
+  $('job-test').disabled=!execute||testReady()===false;$('job-build').disabled=!execute||builderReady()!==true;$('source-publish').disabled=true;
+  $('dirty-badge').textContent=conflict?'冲突 · 必须重读':dirty?'本地未保存':sourceFile?'服务端版本':'未读取';$('dirty-badge').className='badge'+(conflict?' bad':dirty?' warn':'');
+  $('workspace-gate').textContent=!develop?'需要 develop 权限；当前仅可按读取权限查看。':!c?'请选择组件。':c.editable!==true?'服务端未允许该组件源码编辑，不能新建工作区。':workspace&&!owned?'该工作区不属于当前用户或缺少所有者信息，写入与执行关闭。':'可编辑文件清单与所有权由服务端决定；刷新不覆盖未保存文本。';
+  $('source-gate').textContent=conflict?'文件写入发生冲突或结果未确认：保留本地文本，必须重读后重新编辑。':dirty?'源码已修改：expected_hash 已失效。保存并重新读取工作区哈希前不能执行任务。':!sourceFile?'未读取文件，不能保存。任务还需要当前工作区的有效 source_hash。':!develop||!owned?'没有 develop 权限或不拥有当前工作区，写入与执行已禁用。':!fileEditable()?'服务端将此文件标为只读 / 受保护，不能编辑或保存；可信基线不会从网页修改。':!validHash(expectedHash)?'缺少有效工作区哈希；请刷新工作区，任务执行仍关闭。':'保存携带 expected_sha256；任务绑定服务端工作区 expected_hash。';
+  $('active-policy-hash').textContent=activeHash||'未采样 · 未读取有效 active 策略哈希';
+  const operation=authenticated&&has('operate')&&c&&runtimeName(c)&&validHash(activeHash)&&!busy;
+  $('action-stop').disabled=!operation;
+  for(const id of ['action-start','action-restart'])$(id).disabled=!operation||activeEnabled===false;
+  $('action-gate').textContent=!has('operate')?'没有 operate 权限，不能执行运行变更。':!c||!runtimeName(c)?'所选组件没有已登记运行归属，不能执行运行操作。':!validHash(activeHash)?'缺少服务端 active 控制策略哈希，请先核验策略；不从草稿或源码推导哈希。':activeEnabled===false?'服务端 active 控制策略 enabled=false：启动与重启已禁用，只保留经授权的停止操作。':isShared(c)?'所有操作影响共享 backend 与全部六类应用；点击后需再次确认，最终由后端核验。':'操作绑定 active 策略哈希，执行结果需重新观测，不能推断应用已启动。';
+  $('jobs-refresh').disabled=!has('view')||busy;$('job-refresh').disabled=!has('view')||!selectedJob||busy;
+  for(const b of document.querySelectorAll('#revision-list button, #job-list button'))b.disabled=mutating;
+  syncReleaseControls();renderMetrics();
+}
+function updateComponentContext(){const c=currentComponent();$('component-context').textContent=c?printable(c.title||c.id)+' · 运行归属 '+(isShared(c)?'backend（六应用共享）':runtimeName(c)||'未登记')+' · '+(c.limitation||'能力边界未说明'):'目录、运行归属与可编辑范围以服务端登记为准。';}
+async function loadComponents(ctx){
+  const data=await request('/api/manage/components','GET',undefined,ctx);assertCurrent(ctx);
+  const next=items(data,'components');if(!next.every(c=>typeof c.id==='string'&&c.id.length>0))throw new Error('组件响应缺少合法 ID');
+  const previous=selectedComponent;components=next;limits=obj(data)&&data.limits!==undefined?data.limits:null;
+  serverCapabilities=obj(data)?{build:data.build,test:data.test,builder_ready:data.builder_ready,isolated_builder_ready:data.isolated_builder_ready,capabilities:data.capabilities}:null;sampled=true;
+  const select=$('component-select');select.replaceChildren();if(!next.length){const o=node('option','服务端没有登记组件');o.value='';select.append(o);}else for(const c of next){const o=node('option',printable(c.title||c.id)+' · '+c.id);o.value=c.id;select.append(o);}
+  selectedComponent=next.some(c=>c.id===previous)?previous:(next.find(c=>SHARED.some(s=>s[0]===c.id))||next[0]||{}).id||'';select.value=selectedComponent;
+  if(previous!==selectedComponent){clearPolicy();clearWorkspace();}
+  activeHash='';activeEnabled=null;activeFromComponent(currentComponent());
+  updateComponentContext();renderComponents();setMessage('global-status','组件登记已读取。运行与资源仅采用明确的服务端观测；未提供的数据保持「未采样」。');
+}
+function renderRevisions(){
+  const list=$('revision-list');list.replaceChildren();if(!revisions.length){empty(list,'服务端未返回该组件的策略修订。');return;}
+  for(const r of revisions){const b=node('button',undefined,'list-item');b.type='button';b.setAttribute('aria-pressed',String(Boolean(revision&&r.id===revision.id)));const top=node('div',undefined,'item-top');top.append(node('span','版本 '+printable(r.version),'item-title'),statusBadge(revisionState(r)));b.append(top,node('p','ID · '+printable(r.id),'mono'),node('p','作者 / 所有者 · '+printable(authorOf(r))),node('div','哈希 · '+printable(r.hash||r.config_hash),'hash'));b.addEventListener('click',()=>{if(mutationBusy())return;revision=r;renderPolicyEditor();renderRevisions();syncControls();});list.append(b);}
+}
+function renderPolicyEditor(){
+  if(!revision){resetPolicyForm();return;}
+  const r=revision;$('policy-editor-title').textContent='策略修订 · 版本 '+printable(r.version);
+  metadata($('revision-meta'),[['修订 ID',r.id],['版本 / 状态',printable(r.version)+' / '+(revisionState(r)||'未采样')],['作者 / 所有者',authorOf(r),true],['策略哈希',r.hash||r.config_hash,true],['控制策略原文',r.config,true]]);
+  $('policy-enabled').checked=obj(r.config)&&r.config.enabled===true;$('policy-timeout').value=obj(r.config)&&Number.isSafeInteger(r.config.request_timeout_s)?String(r.config.request_timeout_s):'';
+}
+async function loadRevisions(ctx){
+  const component=selectedComponent;if(!component)throw new Error('请先选择组件');activeHash='';activeEnabled=null;syncControls();
+  const data=await request('/api/manage/config/revisions?component='+encodeURIComponent(component),'GET',undefined,ctx);assertCurrent(ctx);
+  if(component!==selectedComponent)throw new Error('组件已切换，旧修订已丢弃');
+  revisions=items(data,'revisions');
+  // Historical "activated" revisions are not necessarily the current active pointer.
+  await loadComponents(ctx);assertCurrent(ctx);
+  if(component!==selectedComponent)throw new Error('组件已变化，请重新读取策略');
+  const active=revisions.filter(r=>revisionState(r)==='active'&&validHash(r.hash||r.config_hash));
+  if(!activeHash&&active.length===1&&!Object.prototype.hasOwnProperty.call(currentComponent()||{},'active_policy')){activeHash=active[0].hash||active[0].config_hash;activeEnabled=obj(active[0].config)&&typeof active[0].config.enabled==='boolean'?active[0].config.enabled:null;}
+  if(revision){revision=revisions.find(r=>r.id===revision.id)||null;renderPolicyEditor();}renderRevisions();
+  setMessage('revision-status','已读取 '+revisions.length+' 条真实修订。'+(activeHash?'已核验 active 策略哈希。':'没有唯一有效的 active 策略哈希，运行操作关闭。'));
+}
+function policyConfig(){const timeout=Number($('policy-timeout').value);if(!$('policy-timeout').value||!Number.isSafeInteger(timeout)||timeout<1||timeout>120)throw new Error('管理请求超时必须是 1–120 的整数');return {enabled:$('policy-enabled').checked,request_timeout_s:timeout};}
+async function writePolicy(kind,decision){
+  const permission=kind==='review'?canReviewPolicy():kind==='activate'?canActivatePolicy():canWritePolicy();
+  if(!permission || anyBusy() || !currentComponent())return;
+  if(kind==='create'&&$('policy-create').disabled)return;
+  const button={save:'policy-save',submit:'policy-submit',review:decision==='approved'?'policy-approve':'policy-reject',activate:'policy-activate'}[kind];if(button&&$(button).disabled)return;
+  await task('policy-write','revision-status',async ctx=>{
+    let path='/api/manage/config/revisions',method='POST',body;
+    if(kind==='create')body={component:selectedComponent,config:policyConfig()};
+    else {if(!versionOK(revision))throw new Error('缺少服务端修订版本');path+='/'+routeId(revision.id);body={expected_version:revision.version};if(kind==='save'){method='PATCH';body.config=policyConfig();}else {path+='/'+kind;if(kind==='review')body.decision=decision;}}
+    activeHash='';activeEnabled=null;
+    const result=await request(path,method,body,ctx);assertCurrent(ctx);
+    const returned=obj(result)&&obj(result.revision)?result.revision:result;
+    if(obj(returned)&&typeof returned.id==='string')revision=returned;
+    await loadRevisions(ctx);assertCurrent(ctx);
+    setMessage('global-status',kind==='activate'?'服务端已返回策略激活结果。仅激活管理控制策略，不代表运行应用配置或源码已经改变。':'服务端已返回策略变更结果，并重新读取版本。独立身份与状态转换由后端核验。');
+  });
+}
+function parseWorkspace(data){const w=obj(data)&&obj(data.workspace)?data.workspace:data;if(!obj(w)||typeof w.id!=='string'||!Array.isArray(w.files))throw new Error('工作区响应缺少 id 或 files，未采用新哈希');return w;}
+function renderWorkspace(){
+  metadata($('workspace-meta'),[['工作区 ID',workspace.id],['所有者',workspace.owner!==undefined?workspace.owner:workspace.owner_id],['工作区 source_hash',expectedHash||'未采样 / 本地失效',true]]);
+  const previous=$('file-select').value;files=workspace.files.map(f=>typeof f==='string'?f:obj(f)&&typeof f.path==='string'?f.path:null).filter(f=>f&&f.length<=1024&&!/[\u0000-\u001f]/.test(f));
+  const select=$('file-select');select.replaceChildren();const blank=node('option',files.length?'请选择已登记文件':'服务端没有返回可读文件');blank.value='';select.append(blank);for(const path of files){const o=node('option',path);o.value=path;select.append(o);}if(files.includes(previous))select.value=previous;
+}
+async function loadWorkspace(ctx,id){
+  const data=await request('/api/dev/workspaces/'+routeId(id),'GET',undefined,ctx);assertCurrent(ctx);
+  const next=parseWorkspace(data);if(next.id!==id)throw new Error('工作区 ID 与请求不一致');workspace=next;expectedHash=!dirty&&!conflict&&validHash(next.source_hash)?next.source_hash:'';renderWorkspace();
+}
+async function createWorkspace(){
+  if($('workspace-create').disabled)return;
+  clearWorkspace();
+  await task('dev-write','dev-status',async ctx=>{
+    const component=selectedComponent;const data=await request('/api/dev/workspaces','POST',{component},ctx);assertCurrent(ctx);
+    const created=obj(data)&&obj(data.workspace)?data.workspace:data;if(!obj(created)||typeof created.id!=='string')throw new Error('创建工作区响应没有有效 ID，未假定创建成功');
+    await loadWorkspace(ctx,created.id);assertCurrent(ctx);setMessage('dev-status','已读取服务端工作区。选择已登记文件后可读取源码。');setMessage('global-status','工作区由服务端创建；源码发布仍不可用。');
+  });
+}
+async function loadFile(ctx,path){
+  if(!workspace||!files.includes(path))throw new Error('请从服务端文件清单选择文件');
+  const id=workspace.id;const data=await request('/api/dev/workspaces/'+routeId(id)+'/file?path='+encodeURIComponent(path),'GET',undefined,ctx);assertCurrent(ctx);
+  if(!obj(data)||data.path!==path||typeof data.content!=='string'||!validHash(data.sha256))throw new Error('文件响应缺少一致路径、源码或 SHA-256，未允许写入');
+  sourceFile={path:data.path,sha256:data.sha256,editable:data.editable};dirty=false;conflict=false;$('source-editor').value=data.content;$('source-label').textContent='源码 · '+path;$('file-hash').textContent=data.sha256;
+  $('source-diff').textContent='未采样 · 文件已重读，请重新请求差异';
+  await loadWorkspace(ctx,id);assertCurrent(ctx);$('file-select').value=path;setMessage('dev-status','已读取真实文件与工作区哈希。本地文本变更会立即使任务哈希失效。');
+}
+async function reloadFile(){
+  if($('file-reload').disabled)return;const path=$('file-select').value;
+  await task('file','dev-status',async ctx=>{expectedHash='';clearFile();await loadFile(ctx,path);});
+}
+async function saveFile(){
+  if($('file-save').disabled)return;
+  await task('dev-write','dev-status',async ctx=>{
+    const id=workspace.id,path=sourceFile.path,body={path,expected_sha256:sourceFile.sha256,content:$('source-editor').value};expectedHash='';
+    try{await request('/api/dev/workspaces/'+routeId(id)+'/file','PATCH',body,ctx);assertCurrent(ctx);await loadFile(ctx,path);assertCurrent(ctx);setMessage('dev-status','服务端已确认写入；文件 SHA-256 与工作区 source_hash 已重新读取。');setMessage('global-status','源码仅保存到受控工作区，未发布到运行服务。');}
+    catch(e){if(currentGuard(ctx)){expectedHash='';conflict=true;dirty=true;$('source-diff').textContent='写入未确认或版本冲突。保留本地文本；重读文件与差异后再继续。';}throw e;}
+  });
+}
+function renderJobs(){
+  const list=$('job-list');list.replaceChildren();if(!jobs.length){empty(list,'服务端没有返回任务记录。');return;}
+  for(const j of jobs){const b=node('button',undefined,'list-item');b.type='button';b.setAttribute('aria-pressed',String(j.id===selectedJob));const top=node('div',undefined,'item-top');top.append(node('span',j.kind==='test'?'测试':j.kind==='build'?'构建':printable(j.kind),'item-title'),statusBadge(j.status||j.state,'job'));b.append(top,node('p','任务 ID · '+printable(j.id),'mono'),node('p','工作区 · '+printable(j.workspace_id),'mono'));b.addEventListener('click',()=>{if(!has('view')||mutationBusy()||typeof j.id!=='string')return;invalidate(['job']);selectedJob=j.id;job=null;metadata($('job-meta'),[['任务状态','未采样'],['任务 ID',selectedJob]]);$('job-log').textContent='未采样 · 正在读取选中任务';renderJobs();void refreshJob();});list.append(b);}
+}
+function renderJob(){
+  if(!job)return;const result=obj(job.result)?job.result:{};
+  metadata($('job-meta'),[['任务 ID',job.id],['任务状态',job.status||job.state],['类型',job.kind],['工作区',job.workspace_id],['expected_hash / 源码哈希',job.expected_hash||job.source_hash,true],['服务端退出码',job.exit_code!==undefined?job.exit_code:result.exit_code],['服务端创建 / 更新',printable(job.created_at)+' / '+printable(job.updated_at),true],['执行结果原文',job.result,true],['服务端说明',job.detail||job.limitation||result.reason,true]]);
+  const logs=job.logs!==undefined?job.logs:job.log!==undefined?job.log:job.output!==undefined?job.output:result.logs!==undefined?result.logs:result.log;
+  $('job-log').textContent=logs===undefined?(result.output_retained===false?'服务端未保留执行输出；不伪造日志。':'未采样 · 服务端没有返回日志'):Array.isArray(logs)?logs.map(printable).join('\n'):printable(logs);
+}
+async function loadJob(ctx,id){const data=await request('/api/dev/jobs/'+routeId(id),'GET',undefined,ctx);assertCurrent(ctx);const next=obj(data)&&obj(data.job)?data.job:data;if(!obj(next)||next.id!==id)throw new Error('任务详情缺少一致 ID，未采用日志');job=next;renderJob();setMessage('job-status','已读取服务端任务详情。状态与日志不代表发布验收；仅手动刷新。');}
+async function refreshJob(){if(!has('view')||!selectedJob)return;await task('job','job-status',ctx=>loadJob(ctx,selectedJob));}
+async function submitJob(kind){
+  if(!['test','build'].includes(kind)||$(kind==='test'?'job-test':'job-build').disabled)return;
+  await task('dev-write','dev-status',async ctx=>{
+    if(kind==='build'&&builderReady()!==true)throw new Error('缺少已确认就绪的独立隔离构建器，拒绝构建');
+    if(kind==='test'&&testReady()===false)throw new Error('服务端已明确隔离测试器未就绪，拒绝执行');
+    const body={workspace_id:workspace.id,expected_hash:expectedHash,kind};
+    clearJobs();
+    try{
+      const data=await request('/api/dev/jobs','POST',body,ctx);assertCurrent(ctx);const created=obj(data)&&obj(data.job)?data.job:data;
+      if(!obj(created)||typeof created.id!=='string')throw new Error('任务响应没有有效 ID；未显示虚构任务或进度');
+      selectedJob=created.id;job=null;jobs=[created];renderJobs();$('job-log').textContent='未采样 · 任务已返回，正在请求实际日志';
+      if(has('view')){await loadJob(ctx,selectedJob);assertCurrent(ctx);}else {job=created;renderJob();$('job-log').textContent='没有 view 权限，不能读取任务详情与日志；不推断执行状态。';}
+      assertCurrent(ctx);switchTab('jobs');$('tab-jobs').focus();setMessage('dev-status',has('view')?'服务端已返回任务并读取详情。执行成功与否以任务状态为准。':'服务端已返回任务记录；没有 view 权限，未读取详情或日志，未确认执行成功。');setMessage('global-status','任务绑定 source_hash：'+body.expected_hash+'。构建或测试不等于源码发布。');
+    }catch(e){if(currentGuard(ctx)){expectedHash='';setMessage('job-status','任务提交或详情未确认，请刷新任务列表与工作区；不要重复提交旧哈希。');}throw e;}
+  });
+}
+async function operate(action){
+  const buttons={start:'action-start',stop:'action-stop',restart:'action-restart'};if(!buttons[action]||$(buttons[action]).disabled)return;
+  const c=currentComponent(),label={start:'启动',stop:'停止',restart:'重启'}[action];
+  const warning=isShared(c)?'该组件归属共享 backend，本操作将影响字卡、典籍、问答、四诊、媒体、会员全部六类应用。':'该操作会改变服务端登记运行单元的状态。';
+  if(!window.confirm('确认'+label+'「'+printable(c.title||c.id)+'」？\n'+warning+'\n服务端将复核 operate 权限与 active 策略哈希。'))return;
+  await task('action','action-status',async ctx=>{
+    try{
+      const result=await request('/api/manage/actions','POST',{component:c.id,action,expected_config_hash:activeHash},ctx);assertCurrent(ctx);
+      const responseText=printable(result);setMessage('action-status','服务端返回：'+bounded(responseText)+'。请刷新组件观测核验实际状态。');setMessage('global-status','运行操作已收到服务端响应；不据此宣称全部应用运行正常。请手动刷新观测。');
+    }catch(e){if(currentGuard(ctx)){activeHash='';activeEnabled=null;}throw e;}
+  });
+}
+function switchTab(name){
+  if(!TAB_INFO[name])return;
+  for(const key of Object.keys(TAB_INFO)){const on=key===name;$('tab-'+key).setAttribute('aria-selected',String(on));$('tab-'+key).tabIndex=on?0:-1;$('view-'+key).hidden=!on;}
+  [$('crumb').textContent,$('page-title').textContent,$('page-description').textContent]=TAB_INFO[name];
+}
+$('login-form').addEventListener('submit',event=>{
+  event.preventDefault();if(pending.has('auth'))return;
+  const name=$('login-name').value.trim(),password=$('login-password').value;if(!name||!password){setMessage('auth-status','请填写用户名与密码。',true);return;}
+  resetSession();
+  void task('auth','auth-status',async ctx=>{
+    const data=await request('/api/auth/login','POST',{name,password},ctx,'json','');assertCurrent(ctx);
+    if(!obj(data)||typeof data.token!=='string'||!data.token||/[\r\n]/.test(data.token)||data.expires===undefined)throw new Error('登录响应缺少有效 token 或 expires，未建立会话');
+    const identity=parseUser(data);token=data.token;user=identity;expires=data.expires;$('login-password').value='';renderIdentity();setMessage('auth-status','登录成功。身份与权限来自服务端；凭证只存在本页内存。');
+    if(has('view')){await loadComponents(ctx);assertCurrent(ctx);}else setMessage('global-status','已认证，但缺少 view 权限，不能读取组件登记与策略。所有写入按实际授予权限关闭。');
+  });
+});
+$('logout-button').addEventListener('click',()=>{
+  if($('logout-button').disabled)return;const oldToken=token;resetSession();
+  if(!oldToken){setMessage('auth-status','登录请求已取消。旧响应不再进入当前会话，页面数据已清空。');return;}
+  void task('logout','auth-status',async ctx=>{
+    await request('/api/auth/logout','POST',{},ctx,'empty',oldToken);assertCurrent(ctx);setMessage('auth-status','已退出：页面数据已清空，服务端注销请求已确认。');setMessage('global-status','全部凭证、源码、差异、日志及 API 数据已清空。');
+  });
+});
+$('identity-refresh').addEventListener('click',()=>{
+  if($('identity-refresh').disabled)return;
+  // Fail closed during a permission refresh, including malformed/error responses.
+  user={...user,permissions:[]};clearReleaseData();clearAuditReport();renderIdentity();
+  void task('identity','auth-status',async ctx=>{const data=await request('/api/auth/me','GET',undefined,ctx);assertCurrent(ctx);const identity=parseUser(data);if(String(identity.id)!==String(user.id)){resetSession();setMessage('auth-status','服务端返回的身份已变化。页面数据已清空，请重新登录。',true);return;}user=identity;if(obj(data)&&data.expires!==undefined)expires=data.expires;accountDetails=data;$('audit-account-data').textContent=printable(data);renderIdentity();setMessage('auth-status','当前身份与权限已由服务端重新核验。');});
+});
+$('components-refresh').addEventListener('click',()=>{if(!$('components-refresh').disabled)void task('components','global-status',loadComponents);});
+$('component-select').addEventListener('change',()=>{
+  if(mutationBusy())return;invalidate(['components','action']);selectedComponent=$('component-select').value;clearPolicy();clearWorkspace();$('action-status').textContent='';updateComponentContext();syncControls();setMessage('global-status','已切换组件。旧修订、源码、差异与任务详情已清空；请手动读取该组件数据。');
+});
+for(const id of ['revisions-refresh','action-policy-refresh'])$(id).addEventListener('click',()=>{if(!$(id).disabled)void task('revisions','revision-status',loadRevisions);});
+$('draft-new').addEventListener('click',()=>{if(!$('draft-new').disabled){resetPolicyForm();renderRevisions();}});
+$('policy-form').addEventListener('submit',e=>{e.preventDefault();void writePolicy('save');});
+$('policy-create').addEventListener('click',()=>{void writePolicy('create');});$('policy-submit').addEventListener('click',()=>{void writePolicy('submit');});$('policy-approve').addEventListener('click',()=>{void writePolicy('review','approved');});$('policy-reject').addEventListener('click',()=>{void writePolicy('review','rejected');});$('policy-activate').addEventListener('click',()=>{void writePolicy('activate');});
+$('workspace-create').addEventListener('click',()=>{void createWorkspace();});
+$('workspace-refresh').addEventListener('click',()=>{if(!$('workspace-refresh').disabled)void task('workspace','dev-status',async ctx=>{expectedHash='';await loadWorkspace(ctx,workspace.id);assertCurrent(ctx);setMessage('dev-status','已刷新服务端工作区哈希与文件清单。');});});
+$('file-select').addEventListener('change',()=>{if(dirty||mutationBusy())return;invalidate(['file','diff']);clearFile();syncControls();});
+$('file-reload').addEventListener('click',()=>{void reloadFile();});$('file-save').addEventListener('click',()=>{void saveFile();});
+$('source-editor').addEventListener('input',()=>{if(!sourceFile||$('source-editor').disabled)return;dirty=true;expectedHash='';$('source-diff').textContent='本地源码已修改。服务端差异尚未包含这些未保存文本。';metadata($('workspace-meta'),[['工作区 ID',workspace.id],['所有者',workspace.owner!==undefined?workspace.owner:workspace.owner_id],['工作区 source_hash','本地失效 · 保存后重新读取',true]]);syncControls();});
+$('diff-refresh').addEventListener('click',()=>{
+  if($('diff-refresh').disabled)return;
+  void task('diff','dev-status',async ctx=>{const data=await request('/api/dev/workspaces/'+routeId(workspace.id)+'/diff','GET',undefined,ctx,'diff');assertCurrent(ctx);const text=diffText(data);$('source-diff').textContent=text||'服务端返回空差异。';setMessage('dev-status',dirty?'已读取服务端差异；不包含尚未保存的本地文本。':'已读取服务端差异，仅作为纯文本展示。');});
+});
+$('job-test').addEventListener('click',()=>{void submitJob('test');});$('job-build').addEventListener('click',()=>{void submitJob('build');});
+$('jobs-refresh').addEventListener('click',()=>{if(!$('jobs-refresh').disabled)void task('jobs','jobs-status',async ctx=>{const data=await request('/api/dev/jobs','GET',undefined,ctx);assertCurrent(ctx);jobs=items(data,'jobs');renderJobs();setMessage('jobs-status','已读取 '+jobs.length+' 条服务端任务记录；无自动刷新。');});});
+$('job-refresh').addEventListener('click',()=>{if(!$('job-refresh').disabled)void refreshJob();});
+for(const action of ['start','stop','restart'])$('action-'+action).addEventListener('click',()=>{void operate(action);});
+const tabs=Object.keys(TAB_INFO);for(const name of tabs){const tab=$('tab-'+name);tab.addEventListener('click',()=>switchTab(name));tab.addEventListener('keydown',e=>{let index=tabs.indexOf(name);if(['ArrowRight','ArrowDown'].includes(e.key))index=(index+1)%tabs.length;else if(['ArrowLeft','ArrowUp'].includes(e.key))index=(index+tabs.length-1)%tabs.length;else if(e.key==='Home')index=0;else if(e.key==='End')index=tabs.length-1;else return;e.preventDefault();switchTab(tabs[index]);$('tab-'+tabs[index]).focus();});}
+for(const id of ['policy-create','policy-save','policy-submit','policy-approve','policy-reject','policy-activate'])$(id).setAttribute('aria-describedby','policy-gate');
+for(const id of ['workspace-create','workspace-refresh'])$(id).setAttribute('aria-describedby','workspace-gate');
+$('file-save').setAttribute('aria-describedby','source-gate');$('job-test').setAttribute('aria-describedby','source-gate test-gate');$('job-build').setAttribute('aria-describedby','source-gate build-gate');
+for(const id of ['action-start','action-stop','action-restart'])$(id).setAttribute('aria-describedby','shared-warning action-gate');
+$('manifest-editor').placeholder=MANIFEST_PLACEHOLDER;$('plan-editor').placeholder=PLAN_PLACEHOLDER;$('rollback-editor').placeholder=ROLLBACK_PLACEHOLDER;
+$('versions-refresh').addEventListener('click',()=>{void refreshReleaseList('version');});$('version-refresh').addEventListener('click',()=>{void refreshReleaseVersion();});
+$('plans-refresh').addEventListener('click',()=>{void refreshReleaseList('plan');});$('plan-refresh').addEventListener('click',()=>{void refreshReleasePlan();});
+$('plan-new').addEventListener('click',()=>{if($('plan-new').disabled)return;invalidate(['release-plan']);selectedPlan='';clearPlanDetail();renderReleaseList('plan');syncControls();});
+$('plan-editor').addEventListener('input',()=>{if($('plan-editor').disabled)return;planDirty=true;syncControls();});
+for(const [button,kind,decision] of [['version-register','register'],['plan-create','create'],['plan-save','save'],['plan-submit','submit'],['plan-approve','review','approve'],['plan-reject','review','reject'],['plan-cancel','cancel'],['plan-execute','execute'],['rollback-create','rollback']]){
+  $(button).addEventListener('click',()=>{void writeRelease(kind,decision);});$(button).setAttribute('aria-describedby',kind==='register'?'manifest-hint':kind==='rollback'?'rollback-hint':'plan-gate plan-blockers');
+}
+for(const [button,kind] of [['report-refresh','report'],['cp-audit-refresh','cp'],['release-audit-refresh','release'],['release-requests-refresh','requests']])$(button).addEventListener('click',()=>{void readSnapshot(kind);});
+$('audit-account-refresh').addEventListener('click',()=>{void readAccountDetails();});
+switchTab('overview');renderIdentity();resetPolicyForm();renderComponents();syncControls();
+</script>
+</body>
+</html>
