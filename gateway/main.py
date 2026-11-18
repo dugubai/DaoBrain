@@ -1,4 +1,6 @@
 """① 模拟入口：鉴权、单进程限速、公开/本地分派、最终失败关闭，以及流量埋点/问答落库。"""
+import json
+import re
 import time
 import uuid
 from collections import deque
@@ -104,6 +106,80 @@ def query(env: TaskEnvelope, identity: str = Depends(require_api)):
     except (httpx.HTTPError, ValueError, KeyError):
         audit("gateway", "dependency_error", task_id=env.task_id, external=False)
         _emit(start, env, channel=channel, route_target=target, verify="error",
+              released=False, outcome="dependency_error")
+        raise HTTPException(503, "依赖服务不可用；未释放未经验证的答案")
+
+
+
+_MEDICAL = re.compile(
+    r"\d+\s*(?:毫克|克|mg|ml|毫升)|(?:建议|应当|必须|可以|需要)(?:服用|用药|停药|吃药|服)|"
+    r"确诊|诊断|治愈|根治|处方|用药|吃什么药|怎么治|如何治|怎样治|治疗方案|什么病|得了.*病|"
+    r"症状|剂量|副作用|禁忌",
+    re.I)
+_REASON_DISCLAIMER = "（以下为 qwen2.5:0.5b 本地模型自由推理，未经典籍语料核验，仅作常识参考，不替代执业医师诊疗。）"
+
+
+@app.post("/v1/reason", response_model=Answer)
+def reason(env: TaskEnvelope, identity: str = Depends(require_api)):
+    """①-b 开放推理层：语料外的常识问题交由本地小模型自由作答，明确标注未经核验；诊疗/用药类硬拒。"""
+    s = get_settings()
+    start = time.perf_counter()
+    tid = env.task_id or uuid.uuid4().hex
+    trace = ["gateway", "open_reason"]
+    env = env.model_copy(update={"task_id": tid, "user_id": identity})
+
+    def _redline_refuse(note: str, reason: str) -> Answer:
+        _emit(start, env, channel="local", route_target=s.ollama_url, verify="reject",
+              released=False, outcome="refuse_redline", model="none")
+        return Answer(task_id=tid, answer="", evidence=[], refused=True, trace=trace, model="none",
+                      note=note,
+                      verification=VerificationResult(task_id=tid, status=VerifyStatus.REJECT,
+                          provenance_ok=False, compliance_ok=False, reasons=[reason]))
+
+    if not s.open_reason_enabled:
+        raise HTTPException(503, "开放推理层未启用")
+    q = (env.query or "").strip()
+    if _MEDICAL.search(q):
+        return _redline_refuse("涉及诊断或用药等诊疗内容，模型不予推理作答。", "诊疗类请求，推理层据实拒答")
+
+    model_name = s.open_reason_model or s.local_model_name
+    if not model_name or len(model_name) > 128:
+        raise HTTPException(503, "开放推理模型配置无效")
+    prompt = ("你是文化常识助手。仅凭常识简要作答，不得给出诊断、用药或剂量；"
+              "不确定就说不确定。用中文，80字以内。\n问：" + q[:500])
+    payload = {"model": model_name, "prompt": prompt, "stream": False, "keep_alive": "20s",
+               "options": {"num_predict": 220, "num_ctx": 2048, "num_batch": 8, "num_gpu": 0,
+                           "use_mmap": True, "num_thread": s.model_cpu_threads, "temperature": 0.4}}
+    try:
+        with httpx.Client(timeout=httpx.Timeout(s.model_timeout_seconds), trust_env=False,
+                          follow_redirects=False) as client:
+            with client.stream("POST", s.ollama_url.rstrip("/") + "/api/generate", json=payload) as r:
+                r.raise_for_status()
+                if r.is_redirect:
+                    raise ValueError("redirect")
+                body = bytearray()
+                for ch in r.iter_bytes():
+                    body.extend(ch)
+                    if len(body) > 32768:
+                        raise ValueError("oversized model response")
+                data = json.loads(body)
+        text = data.get("response") if isinstance(data, dict) else None
+        if not isinstance(text, str) or not text.strip() or data.get("done") is not True:
+            raise ValueError("bad model output")
+        if _MEDICAL.search(text):
+            return _redline_refuse("模型推理触及诊疗表述，已据实拦下，未交付。", "推理答案含诊疗/剂量表述")
+        answer_text = _REASON_DISCLAIMER + "\n" + text.strip()
+        _emit(start, env, channel="local", route_target=s.ollama_url, verify="revise",
+              released=True, outcome="reason", model="ollama:" + model_name, answer=answer_text)
+        return Answer(task_id=tid, answer=answer_text, evidence=[],
+                      verification=VerificationResult(task_id=tid, status=VerifyStatus.REVISE,
+                          provenance_ok=False, compliance_ok=True, hallucination_risk=1.0,
+                          reasons=["开放推理，未经典籍验证"]),
+                      refused=False, model="ollama:" + model_name, trace=trace, simulated=False,
+                      note="模型推理·未经典籍验证·非诊疗建议")
+    except (httpx.HTTPError, ValueError, TypeError, KeyError, UnicodeError):
+        audit("gateway", "reason_dependency_error", task_id=tid, external=False)
+        _emit(start, env, channel="local", route_target=s.ollama_url, verify="error",
               released=False, outcome="dependency_error")
         raise HTTPException(503, "依赖服务不可用；未释放未经验证的答案")
 

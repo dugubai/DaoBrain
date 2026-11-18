@@ -185,18 +185,43 @@ def ask(payload: AskInput):
         result = Answer.model_validate_json(bytes(body))
         if result.task_id != task_id or result.verification.task_id != task_id:
             raise ValueError('task mismatch')
-        # 绿区未命中：网关在入口处即据实拒答（链路只到 gateway、model=none、refused=True、
-        # status=reject）。这是预期内的优雅拒答，必须在完整链路校验之前处理，否则会被误判成 503。
+        # 绿区未命中：网关在入口处据实拒答（trace=['gateway']、model=none、refused=True、reject）。
+        # 不再直接对用户拒答，而是降级到开放推理层 /v1/reason：语料外常识问题由本地小模型自由作答，
+        # 明确标注"未经典籍核验"；诊疗/用药类在推理层内部仍据实拒答。必须在完整链路校验之前处理。
         if result.refused:
             if result.evidence or result.trace != ['gateway'] or result.model != 'none':
                 raise ValueError('malformed refusal')
-            return Answer(task_id=task_id, answer='',
-                evidence=[],
-                verification=VerificationResult(task_id=task_id, status='reject',
-                    provenance_ok=False, compliance_ok=True, hallucination_risk=0,
-                    reasons=['公开典籍语料未命中，据实拒答，不臆测、不提供诊疗']),
-                note='仅依据可信公开典籍语料作答；未找到相关典籍依据时据实拒答，不提供诊疗。',
-                model='none', trace=['gateway'], refused=True, simulated=True)
+            with httpx.Client(timeout=120, trust_env=False, follow_redirects=False) as rclient:
+                with rclient.stream('POST', GW + '/v1/reason',
+                        headers={'X-API-Key': key},
+                        json={'query': query, 'zone': 'unknown', 'task_id': task_id}) as rresponse:
+                    rresponse.raise_for_status()
+                    rbody = bytearray()
+                    for chunk in rresponse.iter_bytes():
+                        rbody.extend(chunk)
+                        if len(rbody) > 65536:
+                            raise ValueError('oversized')
+            rres = Answer.model_validate_json(bytes(rbody))
+            if rres.task_id != task_id or rres.verification.task_id != task_id:
+                raise ValueError('reason task mismatch')
+            if rres.refused:
+                if rres.trace != ['gateway', 'open_reason'] or rres.model != 'none':
+                    raise ValueError('malformed reason refusal')
+                return Answer(task_id=task_id, answer='', evidence=[],
+                    verification=VerificationResult(task_id=task_id, status='reject',
+                        provenance_ok=False, compliance_ok=True, hallucination_risk=0,
+                        reasons=rres.verification.reasons or ['诊疗类请求，据实拒答，不提供诊疗']),
+                    note=rres.note or '涉及诊断或用药等诊疗内容，模型不予推理作答。',
+                    model='none', trace=rres.trace, refused=True, simulated=True)
+            if (rres.verification.status.value != 'revise' or not rres.model.startswith('ollama:')
+                    or rres.trace != ['gateway', 'open_reason']):
+                raise ValueError('unexpected reason result')
+            return Answer(task_id=task_id, answer=rres.answer, evidence=[],
+                verification=VerificationResult(task_id=task_id, status='revise',
+                    provenance_ok=False, compliance_ok=True, hallucination_risk=1.0,
+                    reasons=['本地小模型开放推理，未经典籍语料核验，仅作常识参考']),
+                note='模型推理·未经典籍核验·不替代执业医师诊疗。',
+                model=rres.model, trace=rres.trace, refused=False, simulated=False)
         # 命中的公开答案：必须走完整绿区链路，且证据/摘录/验证全部核验通过
         if result.trace != expected_trace or result.model != expected_model:
             raise ValueError('unexpected backend chain')

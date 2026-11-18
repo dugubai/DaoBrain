@@ -55,21 +55,30 @@ async function doAsk(){
   const response=await fetch('./api/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({query:q}),credentials:'omit',cache:'no-store',redirect:'error',signal:controller.signal});
   if(!response.ok)throw Error(response.status===429?'问答请求已限流，请稍后重试。':'服务器暂时不可用，未发布结果，请稍后重试。');
   const data=await response.json();
-  if(typeof data.model!=='string'||!Array.isArray(data.trace)||!data.verification)throw Error('响应结构异常，未发布结果。');if(data.refused){if(data.trace.length!==1||data.trace[0]!=='gateway'||data.model!=='none')throw Error('拒答响应结构异常，未发布结果。');document.getElementById('trace').textContent='实际模型：'+data.model+' · 实际链路：'+data.trace.join(' → ');document.getElementById('answer').textContent=data.answer||'未在可信公开典籍语料中找到相关依据，按绿区策略不予回答。';document.getElementById('verification').textContent='验证状态：'+data.verification.status+' · 未命中典籍依据，据实拒答（不臆测、不提供诊疗）';renderSources(data);result.hidden=false;askstatus.textContent='已据实拒答 · 未找到典籍依据';return;}
+  if(typeof data.model!=='string'||!Array.isArray(data.trace)||!data.verification)throw Error('响应结构异常，未发布结果。');
+  const setH=(t)=>{result.querySelector('h2').textContent=t;};
+  if(data.refused){
+   if(data.model!=='none')throw Error('拒答响应结构异常，未发布结果。');
+   document.getElementById('trace').textContent='实际模型：'+data.model+' · 实际链路：'+data.trace.join(' → ');
+   document.getElementById('answer').textContent=data.answer||'未命中可信典籍依据，且模型据实不予推理作答（不臆测、不提供诊疗）。';
+   document.getElementById('verification').textContent='验证状态：'+data.verification.status+' · 据实拒答（不臆测、不提供诊疗）';
+   setH('据实拒答');renderSources(data);result.hidden=false;askstatus.textContent='已据实拒答 · 不提供诊疗';return;
+  }
+  if(data.verification.status==='revise'){
+   if(!data.model.startsWith('ollama:')||JSON.stringify(data.trace)!==JSON.stringify(['gateway','open_reason']))throw Error('推理响应结构异常，未发布结果。');
+   document.getElementById('trace').textContent='实际模型：'+data.model+' · 实际链路：'+data.trace.join(' → ');
+   document.getElementById('answer').textContent=data.answer||'（模型未产生可展示内容）';
+   document.getElementById('verification').textContent='验证状态：'+data.verification.status+' · 本地小模型常识推理，未经典籍核验，仅供参考，非诊疗建议';
+   setH('模型推理（未经典籍核验）');renderSources(data);result.hidden=false;askstatus.textContent='模型推理完成 · 未经典籍核验 · '+data.model;return;
+  }
   const local=data.model.startsWith('ollama:');
   const expectedTrace=local?['gateway','hybrid_iface','rag_green','local_model','output_verify']:['gateway','agent_orchestrator','rag_public','external_model','output_verify'];
   if(JSON.stringify(data.trace)!==JSON.stringify(expectedTrace)||(!local&&data.model!=='external-stub'))throw Error('模型或链路标识不匹配，未发布结果。');
   document.getElementById('trace').textContent='实际模型：'+data.model+' · 实际链路：'+data.trace.join(' → ');
-  if(data.refused){
-   document.getElementById('answer').textContent=data.answer||'未在可信公开典籍语料中找到相关依据，按绿区策略不予回答。';
-   document.getElementById('verification').textContent='验证状态：'+data.verification.status+' · 未命中典籍依据，据实拒答（不臆测、不提供诊疗）';
-   renderSources(data);result.hidden=false;askstatus.textContent='已据实拒答 · 未找到典籍依据';
-  }else{
-   if(!data.simulated||data.verification.status!=='pass'||!data.verification.provenance_ok||!data.verification.compliance_ok||!data.evidence.length)throw Error('验证未通过，没有发布结果。');
-   document.getElementById('answer').textContent=data.answer;
-   document.getElementById('verification').textContent='验证状态：'+data.verification.status+' · 来源核对：通过 · '+(local?'本次已调用本地小模型进行证据选取':'本次使用 external-stub 模拟，未调用真实模型')+' · 词法RAG与规则验证，非诊疗';
-   renderSources(data);result.hidden=false;askstatus.textContent='回答完成 · 实际模型：'+data.model+(local?' · 本地小模型证据选取':' · 模拟后端');
-  }
+  if(!data.simulated||data.verification.status!=='pass'||!data.verification.provenance_ok||!data.verification.compliance_ok||!data.evidence.length)throw Error('验证未通过，没有发布结果。');
+  document.getElementById('answer').textContent=data.answer;
+  document.getElementById('verification').textContent='验证状态：'+data.verification.status+' · 来源核对：通过 · '+(local?'本次已调用本地小模型进行证据选取':'本次使用 external-stub 模拟，未调用真实模型')+' · 词法RAG与规则验证，非诊疗';
+  setH('典籍核验结果');renderSources(data);result.hidden=false;askstatus.textContent='回答完成 · 实际模型：'+data.model+(local?' · 本地小模型证据选取':' · 模拟后端');
  }catch(error){askstatus.textContent=error.name==='AbortError'?'请求超时，未发布结果，请稍后重试。':error.message;}
  finally{clearTimeout(timer);askbtn.disabled=false;askq.disabled=false;}
 }

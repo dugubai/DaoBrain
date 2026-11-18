@@ -51,6 +51,8 @@ class Settings(BaseSettings):
     approval_secret: str = ""
     allow_external_stub: bool = True
     ollama_url: str = "http://ollama:11434"
+    open_reason_model: str = "qwen2.5:0.5b"
+    open_reason_enabled: bool = True
     model_timeout_seconds: int = Field(default=60, ge=1, le=120)
     model_max_output_tokens: int = Field(default=256, ge=16, le=512)
     max_requests_per_minute: int = Field(default=30, ge=1, le=1000)
