@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     external_model_api_key: str = ""
     external_model_base_url: str = ""
     local_model_backend: str = "ollama"  # ollama | stub
-    local_model_name: str = "qwen2.5:3b"
+    local_model_name: str = "qwen2.5:7b"
     # 两条绿区路径显式选择；CPU部署覆盖为local_ollama，失败不跨路径回退。
     gateway_green_backend: str = "external_stub"  # external_stub | local_ollama
     # copy保留严格原文复制协议；select由真实模型选证据ID，服务器核验后逐字摘录。
@@ -51,7 +51,7 @@ class Settings(BaseSettings):
     approval_secret: str = ""
     allow_external_stub: bool = True
     ollama_url: str = "http://ollama:11434"
-    open_reason_model: str = "qwen2.5:0.5b"
+    open_reason_model: str = "qwen2.5:7b"
     open_reason_enabled: bool = True
     model_timeout_seconds: int = Field(default=60, ge=1, le=120)
     model_max_output_tokens: int = Field(default=256, ge=16, le=512)
