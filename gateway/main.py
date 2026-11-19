@@ -116,7 +116,8 @@ _MEDICAL = re.compile(
     r"确诊|诊断|治愈|根治|处方|用药|吃什么药|怎么治|如何治|怎样治|治疗方案|什么病|得了.*病|"
     r"症状|剂量|副作用|禁忌",
     re.I)
-_REASON_DISCLAIMER = "（以下为 qwen2.5:0.5b 本地模型自由推理，未经典籍语料核验，仅作常识参考，不替代执业医师诊疗。）"
+def _reason_disclaimer(model_name: str) -> str:
+    return (f"（以下为 {model_name} 本地模型自由推理，未经典籍语料核验，仅作常识参考，不替代执业医师诊疗。）")
 
 
 @app.post("/v1/reason", response_model=Answer)
@@ -168,7 +169,7 @@ def reason(env: TaskEnvelope, identity: str = Depends(require_api)):
             raise ValueError("bad model output")
         if _MEDICAL.search(text):
             return _redline_refuse("模型推理触及诊疗表述，已据实拦下，未交付。", "推理答案含诊疗/剂量表述")
-        answer_text = _REASON_DISCLAIMER + "\n" + text.strip()
+        answer_text = _reason_disclaimer(model_name) + "\n" + text.strip()
         _emit(start, env, channel="local", route_target=s.ollama_url, verify="revise",
               released=True, outcome="reason", model="ollama:" + model_name, answer=answer_text)
         return Answer(task_id=tid, answer=answer_text, evidence=[],
