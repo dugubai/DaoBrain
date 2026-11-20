@@ -13,6 +13,7 @@ from common.config import get_settings
 from common.corpus_fixtures import FIXTURES
 from common.health import health_router
 from dashboard import topology as topo
+from dashboard import ops as opsmod
 
 app = FastAPI(title="DaoBrain ⑦ dashboard")
 app.include_router(health_router("dashboard"))
@@ -104,6 +105,15 @@ def api_topology():
         return topo.build()
     except Exception as exc:
         raise HTTPException(503, "拓扑数据暂不可用：%s" % type(exc).__name__)
+
+
+@app.get("/api/ops")
+def api_ops():
+    """前后端配置与实时流量聚合：后端生效参数 + qa_events 分钟曲线 + 主机/备机采集快照。"""
+    try:
+        return opsmod.build()
+    except Exception as exc:
+        raise HTTPException(503, "前后端配置数据暂不可用：%s" % type(exc).__name__)
 
 
 @app.get("/arch", response_class=HTMLResponse)
@@ -211,6 +221,25 @@ footer{color:var(--muted);font-size:12px;padding:24px 28px;text-align:center}
 .arrow{height:8px;margin:7px 0;border-radius:4px;background:repeating-linear-gradient(90deg,#c9d6c4 0 12px,transparent 12px 22px);background-size:200% 100%}
 .arrow.on{animation:flow 1.1s linear infinite}
 @keyframes flow{from{background-position:0 0}to{background-position:-34px 0}}
+.opsgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.opsub{border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:#fffdf7}
+.opsub h3{margin:0 0 8px;font-size:13px;letter-spacing:1px;color:var(--accent2)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:12px;border:1px solid var(--line);border-radius:8px;padding:3px 9px;background:#f6f1e6}
+.chip b{font-weight:700}
+.chip.warn{background:#f6ecd6;border-color:#e3cf9a}
+.chip.bad{background:#f3e2df;border-color:#e3bdb6}
+.spark{display:flex;align-items:flex-end;gap:2px;height:44px;margin-top:6px}
+.spark i{flex:1;background:var(--accent);min-height:1px;border-radius:1px 1px 0 0;display:flex;flex-direction:column-reverse}
+.spark i em{background:var(--accent2);display:block}
+.spark i s{background:#c9a13b;display:block}
+.sparklab{font-size:10px;color:var(--muted);display:flex;justify-content:space-between;margin-top:3px}
+.oprow{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-bottom:1px dashed var(--line)}
+.oprow:last-child{border-bottom:none}
+.opmut{color:var(--muted)}
+.opbar{height:8px;border-radius:5px;background:linear-gradient(90deg,#d69a4b,#c0685a)}
+.opbarwrap{background:#eee7d8;border-radius:5px;flex:1;height:8px;margin:0 8px;align-self:center}
+@media(max-width:820px){.opsgrid{grid-template-columns:1fr}}
 </style></head>
 <script src="topo.js"></script>
 <body>
@@ -219,6 +248,7 @@ footer{color:var(--muted);font-size:12px;padding:24px 28px;text-align:center}
 <div class="wrap">
 <div class="grid kpis" id="kpis"></div>
 <div class="card"><h2>架构拓扑 · 实时运行<span class="tiny" id="topometa"></span></h2><div id="topo" style="overflow:auto"><div class="muted">正在加载实时拓扑…</div></div></div>
+<div class="card"><h2>前后端配置 · 实时流量<span class="tiny" id="opsmeta"></span></h2><div id="ops"><div class="muted">正在加载前后端配置与实时流量…</div></div></div>
 <div class="card"><h2>全路径流量分道（公有云入口 / 本地分流）</h2><div id="flow"></div></div>
 <div class="cols3 grid" style="margin-top:18px">
   <div class="card" style="margin:0"><h2>区域分布</h2><div id="zones"></div></div>
@@ -295,6 +325,66 @@ async function detail(id){
  el.classList.add('open');
 }
 load().catch(e=>{document.getElementById('kpis').innerHTML='<div class="card">数据加载失败：'+esc(e.message)+'</div>';});
+let OPS_MIN=30;
+function chip(k,v,cls){return `<span class="chip ${cls||''}">${esc(k)}：<b>${esc(v==null||v===''?'—':v)}</b></span>`;}
+function chipB(k,v){return chip(k,v,'');}
+function spark(series){
+  if(!series||!series.length)return '<div class="opmut">近'+OPS_MIN+'分钟暂无问答</div>';
+  const max=Math.max(1,...series.map(p=>p.total||0));
+  const bars=series.map(p=>{const t=p.total||0,r=p.release||0,rs=p.reason||0,rf=p.refuse||0;
+    const h=Math.round(t/max*100);
+    return `<i title="${p.m} 总${t} 释放${r} 推理${rs} 拒绝${rf}" style="height:${Math.max(4,h)}%"><s style="height:${t?Math.round(rf/t*100):0}%"></s><em style="height:${t?Math.round(rs/t*100):0}%"></em></i>`;}).join('');
+  const lab=series.length?`<div class="sparklab"><span>${esc(series[0].m)}</span><span>绿=释放 棕=推理 黄=拒绝 · 峰值${max}/分</span><span>${esc(series[series.length-1].m)}</span></div>`:'';
+  return `<div class="spark">${bars}</div>${lab}`;
+}
+function pctBar(pct,mem){const w=Math.max(0,Math.min(100,pct||0));
+  return `<div class="oprow"><span class="opmut">GPU 利用率</span><div class="opbarwrap"><div class="opbar" style="width:${w}%"></div></div><b>${pct||0}%</b></div>
+  <div class="oprow"><span class="opmut">显存</span><span>${mem?esc(mem):'—'}</span></div>`;}
+async function loadOps(){
+ const meta=document.getElementById('opsmeta');
+ try{
+  const d=await (await fetch('api/ops')).json();
+  const b=d.backend_config||{}, tr=d.traffic||{}, bk=d.backup, en=d.entry;
+  meta.textContent=' · 更新 '+esc(d.as_of||'');
+  const backend=`<div class="opsub"><h3>后端生效配置（gateway / local_model / ollama）</h3><div class="chips">
+    ${chipB('绿区后端',b.gateway_green_backend)}${chipB('local_model 后端',b.local_model_backend,b.local_model_backend==='ollama'?'':'warn')}
+    ${chipB('输出协议',b.model_output_protocol)}${chipB('核验模型',b.local_model_name)}${chipB('推理模型',b.open_reason_model)}
+    ${chipB('开放推理',b.open_reason_enabled?'启用':'关闭')}${chipB('num_ctx',b.model_context_tokens)}${chipB('max_tokens',b.model_max_output_tokens)}
+    ${chipB('限速',b.max_requests_per_minute+'/分')}</div>
+    <div class="opmut" style="font-size:11px;margin-top:8px">注意：.env 会覆盖 config.py 默认值；此处读的是进程实际生效值。</div></div>`;
+  const tot=tr.totals||{},lat=tr.latency||{};
+  const chan=(tr.by_channel||[]).map(c=>`${c.c||'未派发'} ${c.n}`).join(' · ')||'—';
+  const mdl=(tr.by_model||[]).map(c=>`${c.m||'none'} ${c.n}`).join(' · ')||'—';
+  const traffic=`<div class="opsub"><h3>实时流量（近${tr.window_min||OPS_MIN}分钟 · qa_events）</h3>
+    ${spark(tr.series)}
+    <div class="oprow"><span class="opmut">窗口请求 / 释放 / 拒绝 / 异常</span><b>${tot.total||0} / ${tot.released||0} / ${tot.refused||0} / ${tot.errors||0}</b></div>
+    <div class="oprow"><span class="opmut">平均 / P95 延迟</span><span>${lat.avg_ms||0}ms / ${lat.p95_ms||0}ms</span></div>
+    <div class="oprow"><span class="opmut">分道</span><span class="opmut" style="text-align:right">${esc(chan)}</span></div>
+    <div class="oprow"><span class="opmut">模型分布</span><span class="opmut" style="text-align:right">${esc(mdl)}</span></div></div>`;
+  let entryHtml;
+  if(en&&en.data){const e=en.data,a=e.access||{},ng=e.nginx||{},tu=e.tunnel||{},pd=(e.public_demo||{}),pde=pd.env||{},c=a.counts||{};
+    const paths=(a.top_paths||[]).slice(0,5).map(p=>`${p.path} ${p.n}`).join(' · ')||'—';
+    entryHtml=`<div class="opsub"><h3>前端 · 主机（nginx / socat 桥 / public_demo）<span class="opmut"> · ${en.age_sec!=null?('数据 '+en.age_sec+'s 前'):''}</span></h3>
+     <div class="chips">${chipB('nginx',ng.version&&ng.version.replace(/^nginx version:\s*/,''))}
+      ${chip('80 端口活跃连接',e.tcp_80_established)}${chip('桥接 18083 连接',tu.tcp_18083_established)}
+      ${chip('public_demo',pd.state&&pd.state.state,(pd.state&&pd.state.state==='running')?'':'bad')}
+      ${chipB('样例后端',pde.PUBLIC_DEMO_BACKEND)}${chipB('对外模型',pde.PUBLIC_DEMO_MODEL_NAME)}</div>
+     <div class="oprow"><span class="opmut">近60s 访问</span><b>总${c.total||0} · 2xx ${c['2xx']||0} · 4xx ${c['4xx']||0} · 5xx ${c['5xx']||0} · 429 ${c['429']||0}</b></div>
+     <div class="oprow"><span class="opmut">Top 路径</span><span class="opmut" style="text-align:right;max-width:60%">${esc(paths)}</span></div>
+     <div class="oprow"><span class="opmut">内存可用 / 根盘可用</span><span>${e.mem?Math.round((e.mem.mem_available_kb||0)/1024):'?'}MB / ${e.disk?e.disk.avail_mb:'?'}MB</span></div></div>`;
+  }else{entryHtml=`<div class="opsub"><h3>前端 · 主机</h3><div class="opmut">主机采集快照未就绪（备机→主机 ssh 拉取失败或 /var/lib/daobrain-ops/entry.json 缺失）。</div></div>`;}
+  let backupHtml;
+  if(bk){const g=bk.gpu,o=bk.ollama,cs=bk.containers||[];
+    backupHtml=`<div class="opsub"><h3>后端 · 备机（GPU / Ollama / 容器负载）<span class="opmut"> · ${bk.age_sec!=null?('数据 '+bk.age_sec+'s 前'):''}</span></h3>
+     ${g?pctBar(g.util_gpu_pct,(g.mem_used_mib!=null?(g.mem_used_mib+'/'+g.mem_total_mib+' MiB'):null)):'<div class="oprow"><span class="opmut">GPU</span><span class="opmut">未取到 nvidia-smi</span></div>'}
+     <div class="oprow"><span class="opmut">Ollama 常驻</span><span class="opmut" style="text-align:right">${o&&o.reachable?(o.models&&o.models.length?esc(o.models.map(m=>m.name).join(', ')):'无加载模型'):'不可达'}</span></div>
+     ${cs.length?cs.map(c=>`<div class="oprow"><span class="opmut">${esc((c.name||'').replace(/^daobrain-?/,'').replace(/-1$/,''))}</span><span>${esc(c.cpu||'?')} · ${esc(c.mem_pct||c.mem||'?')}</span></div>`).join(''):''}
+     ${bk.stale?'<div class="chip warn" style="margin-top:6px">备机快照偏旧</div>':''}</div>`;
+  }else{backupHtml=`<div class="opsub"><h3>后端 · 备机</h3><div class="opmut">备机采集快照未就绪（${esc(d.backup===null?'ops.json 缺失':'')}）。容器级负载需备机 host 采集器写入 /var/lib/daobrain-ops/ops.json。</div></div>`;}
+  document.getElementById('ops').innerHTML=`<div class="opsgrid">${backend}${traffic}${entryHtml}${backupHtml}</div>`;
+ }catch(e){meta.textContent='';document.getElementById('ops').innerHTML='<div class="chip bad">前后端配置加载失败：'+esc(e.message)+'</div>';}
+}
+loadOps();setInterval(loadOps,5000);
 DbTopo.mount({api:"api/topology",box:"topo",meta:"topometa",interval:6000});
 </script>
 </body></html>"""

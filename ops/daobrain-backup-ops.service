@@ -1,0 +1,15 @@
+[Unit]
+Description=DaoBrain backup ops collector loop (5s cadence, GPU/ollama/containers + pull entry.json)
+After=multi-user.target network-online.target docker.service
+Wants=network-online.target docker.service
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /root/DaoBrain/ops/backup-collector-loop.py
+Restart=always
+RestartSec=10
+Nice=10
+TimeoutStartSec=20
+
+[Install]
+WantedBy=multi-user.target
