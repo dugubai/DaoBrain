@@ -61,10 +61,10 @@ def _energy_interpretation(query: str, result, s) -> str:
         ev = "；".join(parts)[:600]
         prompt = energy_lens.interpretation_prompt(query, ev)
         payload = {"model": model, "prompt": prompt, "stream": False, "keep_alive": "20s",
-                   "options": {"num_predict": 200, "num_ctx": 4096, "num_batch": 8, "num_gpu": 0,
+                   "options": {"num_predict": 160, "num_ctx": 2048, "num_batch": 8, "num_gpu": 0,
                                "use_mmap": True, "num_thread": s.model_cpu_threads,
                                "temperature": 0.5}}
-        with httpx.Client(timeout=httpx.Timeout(s.model_timeout_seconds), trust_env=False,
+        with httpx.Client(timeout=httpx.Timeout(90.0, connect=10.0), trust_env=False,
                           follow_redirects=False) as client:
             with client.stream("POST", s.ollama_url.rstrip("/") + "/api/generate", json=payload) as r:
                 r.raise_for_status()
