@@ -33,9 +33,10 @@ def run(cmd, timeout=6):
 
 
 def fetch_entry():
-    cm = "-o ControlMaster=auto -o ControlPersist=120 -o ControlPath=/tmp/.daobrain-entry-cm-%r@%h:%p "
-    cmd = ("ssh -i %s -o BatchMode=yes -o StrictHostKeyChecking=accept-new " + cm +
-           "-o ConnectTimeout=5 %s 'sudo cat %s 2>/dev/null'"
+    cmd = (("ssh -i %s -o BatchMode=yes -o StrictHostKeyChecking=accept-new "
+            "-o ControlMaster=auto -o ControlPersist=120 "
+            "-o ControlPath=/tmp/.daobrain-entry-cm-%%r@%%h:%%p "
+            "-o ConnectTimeout=5 %s 'sudo cat %s 2>/dev/null'")
            % (SSH_KEY, ENTRY_HOST, ENTRY_JSON))
     rc, out, err = run(cmd, timeout=9)
     if rc != 0 or not out.strip():
