@@ -46,7 +46,7 @@ def _traffic():
                 "count(*)::int AS total, "
                 "count(*) FILTER (WHERE outcome='release')::int AS release, "
                 "count(*) FILTER (WHERE outcome='reason')::int AS reason, "
-                "count(*) FILTER (WHERE outcome LIKE 'refuse%')::int AS refuse, "
+                "count(*) FILTER (WHERE outcome LIKE 'refuse%%')::int AS refuse, "
                 "count(*) FILTER (WHERE outcome='dependency_error' OR verify='error')::int AS error "
                 "FROM qa_events WHERE ts > now() - (%s || ' minutes')::interval "
                 "GROUP BY 1 ORDER BY 1", (str(TRAFFIC_MIN),))
