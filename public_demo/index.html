@@ -17,7 +17,7 @@
 <p class="muted">最多每分钟 12 次样例请求，全站同时仅处理 1 个请求；CPU 小模型可能需要等待约两分钟。也可在下方自由提问，未命中典籍依据将据实拒答。</p></section>
 <section class="card"><h2>自由提问</h2><p>输入与经典文化/典籍相关的问题。服务器仅在可信公开典籍语料命中时给出经出处与规则核验的原文摘录；未命中则据实拒答，不臆测、不提供诊疗。CPU 推理可能较慢。</p><div class="askrow"><input id="askq" type="text" maxlength="200" placeholder="例如：恬淡虚无，真气从之 的出处与含义" autocomplete="off"><button id="askbtn" type="button">提问</button></div><p id="askstatus" role="status" aria-live="polite"></p></section>
 <section id="result" class="card" hidden><h2>受限样例结果</h2><pre id="answer"></pre><p id="verification"></p><p class="muted" id="trace"></p><h2>回答附带的出处</h2><div id="sources"></div></section>
-<footer>单元测试中的 mock 不等于真实模型实测；词法检索与规则验证通过也不是医疗认证。正式交互入口须启用 HTTPS。</footer>
+<footer>单元测试中的 mock 不等于真实模型实测；词法检索与规则验证通过也不是医疗认证。正式交互入口须启用 HTTPS。 <a href="/manage/" style="color:#567065;border-bottom:1px dotted #8fa79a;text-decoration:none;font-size:13px">中台入口 · 运维配置</a> <a href="/daobrain/dash/" style="color:#567065;border-bottom:1px dotted #8fa79a;text-decoration:none;font-size:13px;margin-left:6px">数据大盘</a></footer>
 </main>
 <script>
 const buttons=Array.from(document.querySelectorAll('button[data-sample]'));

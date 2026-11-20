@@ -1,0 +1,22 @@
+[Unit]
+Description=DaoBrain entry ops collector loop (5s cadence)
+After=multi-user.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/python3 /root/DaoBrain/ops/entry-collector-loop.py
+Restart=always
+RestartSec=10
+Nice=19
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
+MemoryMax=64M
+ProtectSystem=strict
+ReadWritePaths=/var/lib/daobrain-ops
+PrivateTmp=yes
+NoNewPrivileges=no
+User=root
+
+[Install]
+WantedBy=multi-user.target
