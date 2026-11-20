@@ -24,7 +24,7 @@ OLLAMA_URL = os.environ.get("OLLAMA_SCRAPE_URL", "http://127.0.0.1:11434/api/ps"
 
 def run(cmd, timeout=6):
     try:
-        p = subprocess.run(cmd, shell=True, capture_output=True, text=True, timeout=timeout)
+        p = subprocess.run(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True, timeout=timeout)
         return p.returncode, p.stdout, p.stderr
     except subprocess.TimeoutExpired:
         return 124, "", "timeout"
