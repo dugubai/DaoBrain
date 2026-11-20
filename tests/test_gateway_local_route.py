@@ -77,7 +77,8 @@ def mocked_dispatch(handler):
         yield outbound
 
 
-def test_default_gateway_preserves_external_stub_path(client):
+def test_default_gateway_preserves_external_stub_path(client, monkeypatch):
+    monkeypatch.setenv('ENERGY_LENS_ENABLED', '0')
     assert get_settings().gateway_green_backend == 'external_stub'
 
     def handler(url, payload):
@@ -237,6 +238,7 @@ def test_in_process_gateway_hybrid_ollama_route_mock_only(client, monkeypatch):
     from rag_green.main import app as rag_app
 
     backend(monkeypatch, 'local_ollama')
+    monkeypatch.setenv('ENERGY_LENS_ENABLED', '0')
     seen = []
     expected, _ = extract(search('四时养生', 4, Zone.GREEN), OLLAMA_LABEL)
     with TestClient(hybrid_app) as hybrid, TestClient(rag_app) as rag, \
@@ -269,3 +271,74 @@ def test_in_process_gateway_hybrid_ollama_route_mock_only(client, monkeypatch):
     assert response.json()['model'] == 'ollama:qwen2.5:0.5b' and not response.json()['refused']
     assert seen == [('hybrid_iface', '/dispatch'), ('rag_green', '/retrieve'),
                     ('local_model', '/infer'), ('ollama', '/api/generate'), ('output_verify', '/verify')]
+
+
+def _green_harness(client, monkeypatch, interp_response):
+    """Drive the real green HIT route in-process; every transport (incl. Ollama) is mocked.
+    The answer-generation Ollama call uses LOCAL_MODEL_NAME; the lens interpretation call uses
+    OPEN_REASON_MODEL (qwen-lens), so the mock can tell them apart by request payload['model']."""
+    from hybrid_iface.main import app as hybrid_app
+    from local_model.main import app as local_app
+    from output_verify.main import app as verify_app
+    from rag_green.main import app as rag_app
+
+    backend(monkeypatch, 'local_ollama')
+    monkeypatch.setenv('OPEN_REASON_MODEL', 'qwen-lens')
+    monkeypatch.delenv('ENERGY_LENS_ENABLED', raising=False)  # default ON
+    get_settings.cache_clear()
+    expected, _ = extract(search('四时养生', 4, Zone.GREEN), OLLAMA_LABEL)
+    seen = []
+
+    with TestClient(hybrid_app) as hybrid, TestClient(rag_app) as rag, \
+            TestClient(local_app) as local, TestClient(verify_app) as verify:
+        apps = {'hybrid_iface': hybrid, 'rag_green': rag, 'local_model': local, 'output_verify': verify}
+
+        def handler(request):
+            seen.append((request.url.host, request.url.path))
+            payload = json.loads(request.content)
+            if request.url.host == 'ollama':
+                assert request.url.path == '/api/generate'
+                if payload['model'] == 'qwen-lens':
+                    return httpx.Response(200, json={
+                        'model': 'qwen-lens', 'done': True, 'response': interp_response})
+                return httpx.Response(200, json={
+                    'model': 'qwen2.5:0.5b', 'done': True, 'response': expected})
+            assert request.url.host in apps
+            assert request.headers['X-Internal-Key'] == 'gateway-route-internal-test'
+            response = apps[request.url.host].post(request.url.path, json=payload,
+                headers={'X-Internal-Key': request.headers['X-Internal-Key']})
+            return httpx.Response(response.status_code, content=response.content)
+
+        def factory(*args, **kwargs):
+            assert kwargs['follow_redirects'] is False and kwargs['trust_env'] is False
+            return _REAL_CLIENT(*args, transport=httpx.MockTransport(handler), **kwargs)
+
+        monkeypatch.setattr(httpx, 'Client', factory)
+        response = query(client)
+    return response, expected, seen
+
+
+def test_green_hit_appends_energy_interpretation_without_touching_answer(client, monkeypatch):
+    """绿区命中：answer / 证据 / trace 必须与核验原文逐字一致；能量模型解读另存 interpretation 字段。"""
+    interp_text = ('依天干取象，此段属木气敷和、'
+                   '春生之令，聊备一家之言。')
+    response, expected, seen = _green_harness(client, monkeypatch, interp_text)
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body['answer'] == expected
+    assert body['trace'] == ['gateway'] + LOCAL_TRACE
+    assert body['model'] == 'ollama:qwen2.5:0.5b' and not body['refused']
+    assert body['interpretation'] == interp_text  # 独立字段，不并入逐字核验的 answer
+    # 解读确为第二次 Ollama 生成（绿区答案 + 解读各一次）
+    assert [s for s in seen if s == ('ollama', '/api/generate')] == \
+        [('ollama', '/api/generate'), ('ollama', '/api/generate')]
+
+
+def test_green_hit_drops_medical_interpretation(client, monkeypatch):
+    """能量模型解读若触碰诊疗红线，必须整段丢弃（interpretation=''），已核验答案不受影响。"""
+    med_text = '此方可治愈失眠，建议用药，剂量为每日三次。'
+    response, expected, seen = _green_harness(client, monkeypatch, med_text)
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body['answer'] == expected and not body['refused']
+    assert body['interpretation'] == ''  # 诊疗红线：解读被丢弃，绝不写入
