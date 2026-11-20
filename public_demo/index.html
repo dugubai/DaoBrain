@@ -16,7 +16,7 @@
 <p id="status" role="status" aria-live="polite">请选择样例 · 运行状态以响应为准 · 无需填写密钥</p>
 <p class="muted">最多每分钟 12 次样例请求，全站同时仅处理 1 个请求；CPU 小模型可能需要等待约两分钟。也可在下方自由提问，未命中典籍依据将据实拒答。</p></section>
 <section class="card"><h2>自由提问</h2><p>输入与经典文化/典籍相关的问题。服务器仅在可信公开典籍语料命中时给出经出处与规则核验的原文摘录；未命中则据实拒答，不臆测、不提供诊疗。CPU 推理可能较慢。</p><div class="askrow"><input id="askq" type="text" maxlength="200" placeholder="例如：恬淡虚无，真气从之 的出处与含义" autocomplete="off"><button id="askbtn" type="button">提问</button></div><p id="askstatus" role="status" aria-live="polite"></p></section>
-<section id="result" class="card" hidden><h2>受限样例结果</h2><pre id="answer"></pre><p id="verification"></p><p class="muted" id="trace"></p><h2>回答附带的出处</h2><div id="sources"></div></section>
+<section id="result" class="card" hidden><h2>受限样例结果</h2><pre id="answer"></pre><div id="interp" class="interp" hidden><h3>能量模型解读（作者天干哲学框架 · 未经典籍核验 · 非诊疗建议）</h3><p class="interpt"></p></div><p id="verification"></p><p class="muted" id="trace"></p><h2>回答附带的出处</h2><div id="sources"></div></section>
 <footer>单元测试中的 mock 不等于真实模型实测；词法检索与规则验证通过也不是医疗认证。正式交互入口须启用 HTTPS。 <a href="/manage/" style="color:#567065;border-bottom:1px dotted #8fa79a;text-decoration:none;font-size:13px">中台入口 · 运维配置</a> <a href="/daobrain/dash/" style="color:#567065;border-bottom:1px dotted #8fa79a;text-decoration:none;font-size:13px;margin-left:6px">数据大盘</a></footer>
 </main>
 <script>
@@ -36,6 +36,7 @@ buttons.forEach(button=>button.addEventListener('click',async()=>{
   if((!local&&data.model!=='external-stub')||(local&&data.model==='ollama:')||JSON.stringify(data.trace)!==JSON.stringify(expectedTrace))throw Error('模型或链路标识不匹配，没有发布结果。');
   document.getElementById('answer').textContent=data.answer;
   document.getElementById('verification').textContent='验证状态：'+data.verification.status+' · 来源核对：通过 · '+(local?'本次已调用本地小模型进行证据选取':'本次使用 external-stub 模拟，未调用真实模型')+' · 词法RAG与规则验证，非诊疗';
+  renderInterp(data);
   document.getElementById('trace').textContent='实际模型：'+data.model+' · 实际链路：'+data.trace.join(' → ');
   const sources=document.getElementById('sources');sources.replaceChildren();
   data.evidence.forEach(source=>{const article=document.createElement('article');const title=document.createElement('strong');title.textContent=source.title;const quote=document.createElement('p');quote.textContent=source.quote;const meta=document.createElement('p');meta.className='muted';meta.textContent='来源 '+source.source_id+' · '+source.locator+' · 版本 '+source.version;article.append(title,quote,meta);sources.append(article)});
@@ -46,6 +47,7 @@ buttons.forEach(button=>button.addEventListener('click',async()=>{
 
 const askq=document.getElementById('askq'),askbtn=document.getElementById('askbtn'),askstatus=document.getElementById('askstatus');
 function renderSources(data){const sources=document.getElementById('sources');sources.replaceChildren();if(!data.evidence||!data.evidence.length){const p=document.createElement('p');p.className='muted';p.textContent='无引用出处（未命中典籍依据）。';sources.append(p);return;}data.evidence.forEach(source=>{const article=document.createElement('article');const title=document.createElement('strong');title.textContent=source.title;const quote=document.createElement('p');quote.textContent=source.quote;const meta=document.createElement('p');meta.className='muted';meta.textContent='来源 '+source.source_id+' · '+source.locator+' · 版本 '+source.version;article.append(title,quote,meta);sources.append(article)});}
+function renderInterp(data){var w=document.getElementById('interp');if(!w){return;}var p=w.querySelector('.interpt');var it=(typeof data.interpretation==='string')?data.interpretation.trim():'';if(p&&it){p.textContent=it;w.hidden=false;}else{w.hidden=true;}}
 async function doAsk(){
  const q=askq.value.trim();
  if(!q){askstatus.textContent='请输入问题。';return;}
@@ -78,6 +80,7 @@ async function doAsk(){
   if(!data.simulated||data.verification.status!=='pass'||!data.verification.provenance_ok||!data.verification.compliance_ok||!data.evidence.length)throw Error('验证未通过，没有发布结果。');
   document.getElementById('answer').textContent=data.answer;
   document.getElementById('verification').textContent='验证状态：'+data.verification.status+' · 来源核对：通过 · '+(local?'本次已调用本地小模型进行证据选取':'本次使用 external-stub 模拟，未调用真实模型')+' · 词法RAG与规则验证，非诊疗';
+  renderInterp(data);
   setH('典籍核验结果');renderSources(data);result.hidden=false;askstatus.textContent='回答完成 · 实际模型：'+data.model+(local?' · 本地小模型证据选取':' · 模拟后端');
  }catch(error){askstatus.textContent=error.name==='AbortError'?'请求超时，未发布结果，请稍后重试。':error.message;}
  finally{clearTimeout(timer);askbtn.disabled=false;askq.disabled=false;}

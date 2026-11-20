@@ -127,7 +127,8 @@ def demo(payload: DemoInput):
                 provenance_ok=True, compliance_ok=True, hallucination_risk=0,
                 reasons=['固定公开样例的出处及摘录格式已核验']),
             note='公开/合成样例词法RAG与规则验证；仅供经典文化参考，不提供诊疗。',
-            model=expected_model, trace=expected_trace, refused=False, simulated=True)
+            model=expected_model, trace=expected_trace, refused=False, simulated=True,
+            interpretation=result.interpretation)
     except (httpx.HTTPError, ValueError, TypeError, KeyError):
         raise HTTPException(503, '样例链路暂时不可用，未发布结果') from None
     finally:
@@ -239,7 +240,8 @@ def ask(payload: AskInput):
                 provenance_ok=True, compliance_ok=True, hallucination_risk=0,
                 reasons=['公开问答的出处及摘录格式已核验']),
             note='公开/合成样例词法RAG与规则验证；仅供经典文化参考，不提供诊疗。',
-            model=expected_model, trace=expected_trace, refused=False, simulated=True)
+            model=expected_model, trace=expected_trace, refused=False, simulated=True,
+            interpretation=result.interpretation)
     except (httpx.HTTPError, ValueError, TypeError, KeyError):
         raise HTTPException(503, '问答链路暂时不可用，未发布结果') from None
     finally:
