@@ -90,3 +90,5 @@ class Answer(BaseModel):
     model: str = "none"
     trace: list[str] = Field(default_factory=list)
     simulated: bool = True
+    # 天干能量模型对绿区已核验原文的独立哲学解读(作者框架,未核验,非诊疗); 空串=无解读。不参与 answer 逐字核验。
+    interpretation: str = ""

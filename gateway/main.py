@@ -1,5 +1,6 @@
 """① 模拟入口：鉴权、单进程限速、公开/本地分派、最终失败关闭，以及流量埋点/问答落库。"""
 import json
+import os
 import re
 import time
 import uuid
@@ -11,6 +12,7 @@ import httpx
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse
 
+from common import energy_lens
 from common import observe
 from common.audit import audit
 from common.catalog import public_query, search, supported_quotes
@@ -42,6 +44,48 @@ def _emit(start, env, *, channel="", route_target="", verify="", released=False,
                    model=model, evidence_count=len(evidence_ids),
                    evidence_ids=",".join(evidence_ids),
                    latency_ms=int((time.perf_counter() - start) * 1000), answer=answer)
+
+
+def _energy_interpretation(query: str, result, s) -> str:
+    """绿区命中后对已核验典籍原文, 另生成一段独立的能量模型哲学解读(作者框架,未核验,非诊疗)。
+    尽力而为: 依赖失败/输出为空/触碰诊疗红线一律返回空串, 绝不阻断或改写已通过核验的答案。"""
+    try:
+        model = s.open_reason_model or s.local_model_name
+        if not model:
+            return ""
+        parts = []
+        for prov in result.evidence:
+            label = (getattr(prov, "title", "") or "") + "：" + (getattr(prov, "quote", "") or "")
+            if label not in parts:
+                parts.append(label)
+        ev = "；".join(parts)[:600]
+        prompt = energy_lens.interpretation_prompt(query, ev)
+        payload = {"model": model, "prompt": prompt, "stream": False, "keep_alive": "20s",
+                   "options": {"num_predict": 200, "num_ctx": 4096, "num_batch": 8, "num_gpu": 0,
+                               "use_mmap": True, "num_thread": s.model_cpu_threads,
+                               "temperature": 0.5}}
+        with httpx.Client(timeout=httpx.Timeout(s.model_timeout_seconds), trust_env=False,
+                          follow_redirects=False) as client:
+            with client.stream("POST", s.ollama_url.rstrip("/") + "/api/generate", json=payload) as r:
+                r.raise_for_status()
+                if r.is_redirect:
+                    raise ValueError("redirect")
+                body = bytearray()
+                for chunk in r.iter_bytes():
+                    body.extend(chunk)
+                    if len(body) > 32768:
+                        raise ValueError("oversized")
+                data = json.loads(body)
+        text = data.get("response") if isinstance(data, dict) else None
+        if not isinstance(text, str) or not text.strip() or data.get("done") is not True:
+            return ""
+        if _MEDICAL.search(text):
+            audit("gateway", "energy_interpretation_redline", task_id=result.task_id, external=False)
+            return ""
+        return text.strip()
+    except Exception:
+        audit("gateway", "energy_interpretation_error", task_id=getattr(result, "task_id", None), external=False)
+        return ""
 
 
 @app.post("/v1/query", response_model=Answer)
@@ -102,7 +146,11 @@ def query(env: TaskEnvelope, identity: str = Depends(require_api)):
               outcome="release", model=result.model,
               evidence_ids=[e.provenance.source_id for e in final_evidence],
               answer=(result.answer if env.zone == Zone.GREEN else None))
-        return result.model_copy(update={"trace": ["gateway"] + result.trace})
+        interp = ""
+        if os.environ.get("ENERGY_LENS_ENABLED", "1") != "0" and env.zone == Zone.GREEN:
+            interp = _energy_interpretation(env.query, result, s)
+        return result.model_copy(update={"trace": ["gateway"] + result.trace,
+                                         "interpretation": interp})
     except (httpx.HTTPError, ValueError, KeyError):
         audit("gateway", "dependency_error", task_id=env.task_id, external=False)
         _emit(start, env, channel=channel, route_target=target, verify="error",
@@ -146,10 +194,10 @@ def reason(env: TaskEnvelope, identity: str = Depends(require_api)):
     model_name = s.open_reason_model or s.local_model_name
     if not model_name or len(model_name) > 128:
         raise HTTPException(503, "开放推理模型配置无效")
-    prompt = ("你是文化常识助手。仅凭常识简要作答，不得给出诊断、用药或剂量；"
+    prompt = (energy_lens.reason_framing() + " 请以上述天干能量模型的文化视角简要作答，不得给出诊断、用药或剂量；"
               "不确定就说不确定。用中文，80字以内。\n问：" + q[:500])
     payload = {"model": model_name, "prompt": prompt, "stream": False, "keep_alive": "20s",
-               "options": {"num_predict": 220, "num_ctx": 2048, "num_batch": 8, "num_gpu": 0,
+               "options": {"num_predict": 220, "num_ctx": 4096, "num_batch": 8, "num_gpu": 0,
                            "use_mmap": True, "num_thread": s.model_cpu_threads, "temperature": 0.4}}
     try:
         with httpx.Client(timeout=httpx.Timeout(s.model_timeout_seconds), trust_env=False,
