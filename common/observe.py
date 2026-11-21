@@ -8,8 +8,10 @@
 - 非释放行（refuse_* / dependency_error / error）：不落 query、answer 原文，仅留元数据。
 - 开放推理行（outcome=reason）：不落模型自由推理正文（非绿区已核验答案），仅留脱敏后的 query。
 - 释放的绿区行（outcome=release）：留答案（逐字核验公开正文），但 query/answer/note 一律先脱敏。
-- 脱敏覆盖：证件/卡号/手机电话/住址邮箱/账号密码密钥令牌/凭证/URL/邮箱/15–19 位数字串。
+- 脱敏覆盖：证件/卡号/裸 11 位手机号/手机电话/住址邮箱/账号密码密钥令牌/凭证/URL/15–19 位数字串。
+- task_hash 落库前做单向 SHA-256 摘要，绝不落原始任务标识（列名 hash 名副其实）。
 """
+import hashlib
 import re
 import threading
 from decimal import Decimal
@@ -30,6 +32,7 @@ _SENSITIVE = re.compile(
     r"|(?:bearer\s+[A-Za-z0-9._-]+)"
     r"|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}"
     r"|https?://\S+|www\.\S+"
+    r"|(?<![0-9])1[3-9][0-9]{9}(?![0-9])"
     r"|(?<![0-9])[0-9]{15,19}(?![0-9])",
     re.IGNORECASE)
 
@@ -44,6 +47,16 @@ def _redact(value, limit):
 def sensitive_hit(text) -> bool:
     """供 gateway 复用：命中即视为含隐私/凭证/外链，须据实拒答且不落库原文。"""
     return isinstance(text, str) and bool(_SENSITIVE.search(text))
+
+
+def _task_hash(value):
+    """任务标识落库前的单向摘要：原始 UUID/自增号绝不写库，只留 64 位十六进制 SHA-256。"""
+    if value is None:
+        return None
+    text = str(value)
+    if not text:
+        return None
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()[:64]
 
 
 def _privacy(query, answer, note, released, outcome):
@@ -126,7 +139,7 @@ def record(**f):
                 "INSERT INTO qa_events(task_hash,persona,query,zone,channel,route_target,tier,"
                 "verify,released,outcome,model,evidence_count,evidence_ids,latency_ms,note,answer)"
                 " VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)",
-                (_clean(f.get("task_hash"), 64), _clean(f.get("persona"), 64),
+                (_task_hash(f.get("task_hash")), _clean(f.get("persona"), 64),
                  query, _clean(f.get("zone"), 16),
                  _clean(f.get("channel"), 32), _clean(f.get("route_target"), 64),
                  _clean(f.get("tier"), 16), _clean(f.get("verify"), 16),
@@ -191,11 +204,16 @@ def qa_list(limit=200):
     limit = max(1, min(int(limit or 200), 1000))
     with _LOCK:
         conn = _connect()
-        return _fetch(conn,
+        rows = _fetch(conn,
             "SELECT id, task_hash, to_char(ts at time zone 'UTC','YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"') AS ts, "
             "persona, zone, channel, tier, verify, released, outcome, model, evidence_count, latency_ms, "
             "CASE WHEN released THEN LEFT(query,120) ELSE NULL END AS query FROM qa_events ORDER BY ts DESC LIMIT %s",
             (limit,))
+    # 读取端二次脱敏：即便历史行曾明文落库，也不被匿名批量回读原文。
+    for row in rows:
+        if row.get("released") and row.get("query"):
+            row["query"] = _redact(row["query"], 120)
+    return rows
 
 
 def qa_detail(event_id):
@@ -208,6 +226,9 @@ def qa_detail(event_id):
         if not rows:
             return None
         row = rows[0]
+        # note 读取端二次脱敏（无论释放与否），历史泄漏行也不明文回显。
+        if row.get("note") is not None:
+            row["note"] = _redact(row.get("note"), 256)
         # 读取端脱敏：非释放行绝不明文回显正文（含历史泄漏行）；释放行二次脱敏兜底。
         if not row.get("released"):
             row["query"] = None

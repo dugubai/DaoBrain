@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 EXCLUDED = {".git", ".venv", "venv", "__pycache__", ".pytest_cache", ".mypy_cache",
             "node_modules", "data", "models", "ollama", "pgdata", "qdrant_data", ".trash",
             "daobrain39-wheels", "backups"}
-SPECIAL = {".env.example", ".gitignore", ".dockerignore", "Makefile", "Dockerfile", "Dockerfile.app", "Dockerfile.offline"}
+SPECIAL = {".env.example", ".gitignore", ".dockerignore", "Makefile", "Dockerfile", "Dockerfile.app", "Dockerfile.offline", "Dockerfile.dev39", "Dockerfile.offline-dev39"}
 EXTENSIONS = {".py", ".json", ".md", ".html", ".txt", ".yml", ".yaml", ".ini", ".sh", ".conf", ".js", ".service"}
 
 

@@ -95,7 +95,7 @@ def infer(req: InferRequest) -> Candidate:
         if len(prompt.encode()) > _MAX_CONTEXT_BYTES:
             raise HTTPException(413, "提示超出本地上下文上限")
         payload = {"model": settings.local_model_name, "prompt": prompt, "stream": False,
-                   "keep_alive": "30s",
+                   "keep_alive": settings.model_keep_alive,
                    "options": {"num_predict": settings.model_max_output_tokens,
                                "num_ctx": settings.model_context_tokens,
                                # 第一台实测：默认批次/无映射会触发768MiB上限；小批次映射加载通过。

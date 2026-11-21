@@ -192,6 +192,14 @@ def ask(payload: AskInput):
         if result.refused:
             if result.evidence or result.trace != ['gateway'] or result.model != 'none':
                 raise ValueError('malformed refusal')
+            # 安全拒答（隐私/内部/病历类）终态化：绝不降级到自由推理，不把敏感字样送入模型。
+            if 'security_block' in (result.verification.reasons if result.verification else []):
+                return Answer(task_id=task_id, answer='', evidence=[],
+                    verification=VerificationResult(task_id=task_id, status='reject',
+                        provenance_ok=False, compliance_ok=True, hallucination_risk=0,
+                        reasons=['涉及隐私、内部或病历等敏感信息，未派发公开或推理链路。']),
+                    note='涉及隐私、内部或病历等敏感信息，未作答。',
+                    model='none', trace=['gateway'], refused=True, simulated=True)
             with httpx.Client(timeout=120, trust_env=False, follow_redirects=False) as rclient:
                 with rclient.stream('POST', GW + '/v1/reason',
                         headers={'X-API-Key': key},

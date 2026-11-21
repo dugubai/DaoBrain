@@ -49,6 +49,14 @@ _BLOCKED = re.compile(
     r"e.?mail|phone|address|salary|https?://|www\.|@|\d",
     re.IGNORECASE,
 )
+# 安全敏感词（用于区分"安全拒答"与"普通未命中"）：只含隐私/内部/病历类关键词及其英文等价词，
+# 刻意不含裸数字 \d 与邮箱/电话/URL/@ 等格式型 PII —— 后者由 observe.sensitive_hit 在推理层兜底。
+_SECURITY_TERMS = re.compile(
+    r"秘密|保密|机密|隐私|个人信息|个人资料|未公开|内部|红区|病历|患者|病例|姓名|"
+    r"身份证|手机号|电话号码|住址|密码|密钥|令牌|薪资|工资|"
+    r"secret|private|confidential|internal|password|token|api.?key|pii|ssn|patient|record",
+    re.IGNORECASE,
+)
 _PUBLIC_TOPICS = tuple(sorted({
     "黄帝内经", "素问", "上古天真论", "四气调神大论", "四气调神", "四时养生", "四季养生",
     "法于阴阳", "和于术数", "恬淡虚无", "真气从之", "精神内守", "病安从来", "春三月",
@@ -104,6 +112,16 @@ def public_query(query: str) -> bool:
     for filler in _PUBLIC_FILLERS:
         normalized = normalized.replace(filler, "")
     return found and not normalized
+
+
+def sensitive_blocked(query: str) -> bool:
+    """安全敏感判定（内部/病历/隐私/证件类词）：区别于 public_query 的话题语法。
+
+    供 gateway 标记"安全拒答"（终态、不得降级到自由推理）；不返回授权，仅作分类。
+    """
+    if not isinstance(query, str) or not query:
+        return False
+    return bool(_SECURITY_TERMS.search(unicodedata.normalize("NFKC", query).lower()))
 
 
 def search(query: str, top_k: int, zone: Zone) -> list[Retrieved]:

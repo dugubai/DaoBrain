@@ -63,26 +63,28 @@ PRIMARY_NODES = [
      "url": "http://39.102.49.1/daobrain/", "note": "主机容器 :18100 + nginx:80"},
 ]
 
-# 边：from_service -> to_service（label 用于展示；bucket 决定取哪一档流量做 req/min）
+# 边：from_service -> to_service（label 展示；bucket 取哪一档流量做 req/min；
+# basis 表明该信号的来源可信度：observed=直接来自 qa_events 通道/区域计数；
+# inferred=由相减推导（绿区本地=全部绿区-公有云）；planned=该组件当前未接线、无真实度量）。
 EDGES = [
-    ("public_demo", "gateway", "样例入口", "total"),
-    ("gateway", "hybrid_iface", "①→④ 本地分派", "local"),
-    ("gateway", "agent_orchestrator", "①→② 公有云", "cloud"),
-    ("hybrid_iface", "rag_green", "绿区检索", "green"),
-    ("hybrid_iface", "rag_red", "红区检索", "red"),
-    ("rag_green", "local_model", "证据→模型", "green"),
-    ("local_model", "ollama", "GPU 调用", "green"),
-    ("agent_orchestrator", "rag_public", "公开检索", "cloud"),
-    ("rag_public", "external_model", "外部模型", "cloud"),
-    ("rag_red", "daobrain_tuned", "红区推理", "red"),
-    ("daobrain_tuned", "redline_gate", "红线门禁", "red"),
-    ("local_model", "output_verify", "⑥→⑩ 核验", "green"),
-    ("external_model", "output_verify", "⑤→⑩ 核验", "cloud"),
-    ("output_verify", "gateway", "⑩→① 回传/关闭", "total"),
-    ("gateway", "postgres", "问答落库", "total"),
-    ("gateway", "redis", "限流", "total"),
-    ("rag_green", "qdrant", "向量检索", "green"),
-    ("rag_red", "qdrant", "向量检索", "red"),
+    ("public_demo", "gateway", "样例入口", "total", "observed"),
+    ("gateway", "hybrid_iface", "①→④ 本地分派", "local", "observed"),
+    ("gateway", "agent_orchestrator", "①→② 公有云", "cloud", "observed"),
+    ("hybrid_iface", "rag_green", "绿区检索", "green", "inferred"),
+    ("hybrid_iface", "rag_red", "红区检索", "red", "observed"),
+    ("rag_green", "local_model", "证据→模型", "green", "inferred"),
+    ("local_model", "ollama", "GPU 调用", "green", "inferred"),
+    ("agent_orchestrator", "rag_public", "公开检索", "cloud", "observed"),
+    ("rag_public", "external_model", "外部模型", "cloud", "observed"),
+    ("rag_red", "daobrain_tuned", "红区推理", "red", "observed"),
+    ("daobrain_tuned", "redline_gate", "红线门禁", "red", "observed"),
+    ("local_model", "output_verify", "⑥→⑩ 核验", "green", "inferred"),
+    ("external_model", "output_verify", "⑤→⑩ 核验", "cloud", "observed"),
+    ("output_verify", "gateway", "⑩→① 回传/关闭", "total", "observed"),
+    ("gateway", "postgres", "问答落库", "total", "observed"),
+    ("gateway", "redis", "限流(进程内·未接Redis)", "total", "planned"),
+    ("rag_green", "qdrant", "向量检索(未接·词法)", "green", "planned"),
+    ("rag_red", "qdrant", "向量检索(未接·词法)", "red", "planned"),
 ]
 
 
@@ -128,7 +130,9 @@ def _flow():
         "green": green_local,
         "red": red,
     }
-    per_min = {k: round(v * 60.0 / FLOW_WINDOW_MIN, 2) for k, v in buckets.items()}
+    # buckets 里的 v 是整个 FLOW_WINDOW_MIN 分钟窗口内的累计条数，故 req/min = v / 窗口分钟数。
+    # 早期误乘 60（把每窗计数当每秒再乘 60）会整体虚高 60 倍，此处修正。
+    per_min = {k: round(v / FLOW_WINDOW_MIN, 2) for k, v in buckets.items()}
     return {"window_min": FLOW_WINDOW_MIN, "counts": buckets, "per_min": per_min,
             "totals": t, "outcome": out}
 
@@ -171,9 +175,10 @@ def build():
     svcset = {x["service"] for x in nodes}
     per_min = _flow()["per_min"]
     edges = []
-    for a, b, lab, bucket in EDGES:
+    for a, b, lab, bucket, basis in EDGES:
         if a in svcset and b in svcset:
-            edges.append({"from": a, "to": b, "label": lab, "signal": per_min.get(bucket, 0)})
+            signal = 0 if basis == "planned" else per_min.get(bucket, 0)
+            edges.append({"from": a, "to": b, "label": lab, "signal": signal, "basis": basis})
 
     layers = [{"layer": k, "title": LAYERS[k]} for k in sorted(LAYERS)]
     return {

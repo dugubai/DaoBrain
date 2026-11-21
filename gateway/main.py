@@ -15,7 +15,7 @@ from fastapi.responses import FileResponse
 from common import energy_lens
 from common import observe
 from common.audit import audit
-from common.catalog import public_query, search, supported_quotes
+from common.catalog import public_query, search, sensitive_blocked, supported_quotes
 from common.config import get_settings
 from common.health import health_router
 from common.schemas import Answer, TaskEnvelope, VerificationResult, VerifyStatus, Zone
@@ -77,10 +77,15 @@ def _energy_interpretation(query: str, result, s) -> str:
                         raise ValueError("oversized")
                 data = json.loads(body)
         text = data.get("response") if isinstance(data, dict) else None
-        if not isinstance(text, str) or not text.strip() or data.get("done") is not True:
+        if (not isinstance(text, str) or not text.strip()
+                or data.get("done") is not True or data.get("error")
+                or data.get("model") != model):
             return ""
         if _MEDICAL.search(text):
             audit("gateway", "energy_interpretation_redline", task_id=result.task_id, external=False)
+            return ""
+        if observe.sensitive_hit(text):
+            audit("gateway", "energy_interpretation_sensitive", task_id=result.task_id, external=False)
             return ""
         return text.strip()
     except Exception:
@@ -103,10 +108,18 @@ def query(env: TaskEnvelope, identity: str = Depends(require_api)):
                                  "user_id": identity, "gate_approved": False})
     # 声称green/批准不构成公开授权；只接受明确可信的公开样本话题。
     if env.zone == Zone.UNKNOWN or (env.zone == Zone.GREEN and not public_query(env.query)):
+        security = (env.zone == Zone.UNKNOWN or sensitive_blocked(env.query)
+                    or observe.sensitive_hit(env.query))
         _emit(start, env, verify="reject", released=False, outcome="refuse_entry")
+        if security:
+            return Answer(task_id=env.task_id, answer="", refused=True, trace=["gateway"],
+                          note="涉及隐私、内部或病历等敏感信息，未派发公开或推理链路。",
+                          verification=VerificationResult(task_id=env.task_id, status=VerifyStatus.REJECT,
+                                                          reasons=["security_block"]))
         return Answer(task_id=env.task_id, answer="", refused=True, trace=["gateway"],
                       note="未分类或不在可信公开样本范围，未派发公开链路。",
-                      verification=VerificationResult(task_id=env.task_id, status=VerifyStatus.REJECT))
+                      verification=VerificationResult(task_id=env.task_id, status=VerifyStatus.REJECT,
+                                                      reasons=["off_topic"]))
     audit("gateway", "recv", task_id=env.task_id, zone=env.zone.value, external=False)
     if env.zone == Zone.RED:
         target = s.hybrid_iface_url + "/dispatch"

@@ -64,14 +64,14 @@ async function doAsk(){
    document.getElementById('trace').textContent='实际模型：'+data.model+' · 实际链路：'+data.trace.join(' → ');
    document.getElementById('answer').textContent=data.answer||'未命中可信典籍依据，且模型据实不予推理作答（不臆测、不提供诊疗）。';
    document.getElementById('verification').textContent='验证状态：'+data.verification.status+' · 据实拒答（不臆测、不提供诊疗）';
-   setH('据实拒答');renderSources(data);result.hidden=false;askstatus.textContent='已据实拒答 · 不提供诊疗';return;
+   setH('据实拒答');renderInterp({interpretation:''});renderSources(data);result.hidden=false;askstatus.textContent='已据实拒答 · 不提供诊疗';return;
   }
   if(data.verification.status==='revise'){
    if(!data.model.startsWith('ollama:')||JSON.stringify(data.trace)!==JSON.stringify(['gateway','open_reason']))throw Error('推理响应结构异常，未发布结果。');
    document.getElementById('trace').textContent='实际模型：'+data.model+' · 实际链路：'+data.trace.join(' → ');
    document.getElementById('answer').textContent=data.answer||'（模型未产生可展示内容）';
    document.getElementById('verification').textContent='验证状态：'+data.verification.status+' · 本地小模型常识推理，未经典籍核验，仅供参考，非诊疗建议';
-   setH('模型推理（未经典籍核验）');renderSources(data);result.hidden=false;askstatus.textContent='模型推理完成 · 未经典籍核验 · '+data.model;return;
+   setH('模型推理（未经典籍核验）');renderInterp({interpretation:''});renderSources(data);result.hidden=false;askstatus.textContent='模型推理完成 · 未经典籍核验 · '+data.model;return;
   }
   const local=data.model.startsWith('ollama:');
   const expectedTrace=local?['gateway','hybrid_iface','rag_green','local_model','output_verify']:['gateway','agent_orchestrator','rag_public','external_model','output_verify'];
