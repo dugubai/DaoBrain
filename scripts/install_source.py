@@ -1,19 +1,24 @@
 """服务器按SHA256清单安装纯源码，先备份原文件，绝不覆盖.env/权重或删除文件。
 
-sudo python3 install_source.py /home/admin/DaoBrain-source-时间戳.zip 包SHA256
-兼容宿主Python3.6；目标目录预先由管理员建立为/root/DaoBrain。
+用法：sudo python3 install_source.py <源码zip绝对路径> <包SHA256>
+目标目录默认 /home/admin/DaoBrain，可用环境变量 DAOBRAIN_HOME 覆盖；
+备份根目录默认 <DAOBRAIN_HOME同级>/daobrain-deploy-workspace/backup/source，
+可用 DAOBRAIN_DEPLOY_BACKUP 覆盖。兼容宿主 Python 3.6。
 """
 from datetime import datetime
 import hashlib
 import json
+import os
 from pathlib import Path, PurePosixPath
 import shutil
 import sys
 import uuid
 import zipfile
 
-ROOT = Path('/root/DaoBrain')
-BACKUP = Path('/root/daobrain-deploy-workspace/backup/source')
+ROOT = Path(os.environ.get("DAOBRAIN_HOME", "/home/admin/DaoBrain"))
+BACKUP = Path(os.environ.get(
+    "DAOBRAIN_DEPLOY_BACKUP",
+    str(ROOT.parent / "daobrain-deploy-workspace" / "backup" / "source")))
 BLOCKED = {'.git', '.venv', '__pycache__', 'data', 'models', 'ollama', 'pgdata',
            'qdrant_data', 'node_modules', 'daobrain39-wheels', 'backups'}
 

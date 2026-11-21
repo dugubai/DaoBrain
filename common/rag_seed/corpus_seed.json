@@ -1,0 +1,819 @@
+{
+  "schema": "daobrain-rag-seed/v1",
+  "version": "simulation-v1",
+  "generated_by": "scripts/export_rag_seed.py",
+  "note": "文化档案RAG模拟语料的可移植初始数据种子；逐条 content_hash 与运行期 catalog._SEED 一致。用于跨环境部署完整性校验与审计，非运行期数据源，真实检索仍由 common/corpus_fixtures.py 构造。全部为已核实公开典籍正文或纯合成演示，不含真实人名、病历或个人秘密。",
+  "counts": {
+    "total": 34,
+    "green": 22,
+    "red": 12
+  },
+  "records": [
+    {
+      "source_id": "suwen-1",
+      "title": "黄帝内经·素问",
+      "locator": "上古天真论",
+      "quote": "法于阴阳，和于术数",
+      "text": "《黄帝内经·素问·上古天真论》：法于阴阳，和于术数。",
+      "zone": "green",
+      "source_type": "public_classic",
+      "content_hash": "72797f5a4d50aa6fe6b6924f9e58f9dad2c91d3302854970c167bc3be7da847c",
+      "keywords": [
+        "法于阴阳",
+        "和于术数",
+        "上古天真论",
+        "素问",
+        "黄帝内经"
+      ],
+      "expected_query": "法于阴阳",
+      "expected_sources": [
+        "suwen-1"
+      ],
+      "public_topics": [
+        "法于阴阳",
+        "和于术数",
+        "上古天真论",
+        "素问",
+        "黄帝内经"
+      ]
+    },
+    {
+      "source_id": "suwen-2",
+      "title": "黄帝内经·素问",
+      "locator": "四气调神大论",
+      "quote": "春三月，此谓发陈，天地俱生，万物以荣",
+      "text": "《黄帝内经·素问·四气调神大论》：春三月，此谓发陈，天地俱生，万物以荣。",
+      "zone": "green",
+      "source_type": "public_classic",
+      "content_hash": "095ab04644bf5e64f0219a5f6c117937890f6ac894f424aa20254ed4e1f1bcaf",
+      "keywords": [
+        "四时养生",
+        "四气调神",
+        "四季",
+        "春三月",
+        "素问",
+        "黄帝内经"
+      ],
+      "expected_query": "四时养生",
+      "expected_sources": [
+        "suwen-2"
+      ],
+      "public_topics": [
+        "四时养生",
+        "四气调神",
+        "四季",
+        "春三月",
+        "素问",
+        "黄帝内经"
+      ]
+    },
+    {
+      "source_id": "suwen-3",
+      "title": "黄帝内经·素问",
+      "locator": "上古天真论",
+      "quote": "恬惔虚无，真气从之，精神内守，病安从来",
+      "text": "《黄帝内经·素问·上古天真论》：恬惔虚无，真气从之，精神内守，病安从来。",
+      "zone": "green",
+      "source_type": "public_classic",
+      "content_hash": "32b898eb2c159a260045e341d2ba4a30a81f339ad2eb89ba69b2a0c2b11679a7",
+      "keywords": [
+        "恬淡虚无",
+        "恬惔虚无",
+        "真气从之",
+        "精神内守",
+        "上古天真论",
+        "素问",
+        "黄帝内经"
+      ],
+      "expected_query": "恬淡虚无",
+      "expected_sources": [
+        "suwen-3"
+      ],
+      "public_topics": [
+        "恬淡虚无",
+        "恬惔虚无",
+        "真气从之",
+        "精神内守",
+        "上古天真论",
+        "素问",
+        "黄帝内经"
+      ]
+    },
+    {
+      "source_id": "faq-0",
+      "title": "模拟公开文化 FAQ（非典籍原文）",
+      "locator": "用途与免责",
+      "quote": "本平台仅作文化辅助参考，不替代执业医师诊疗",
+      "text": "模拟公开文化 FAQ（非典籍原文）·用途与免责：本平台仅作文化辅助参考，不替代执业医师诊疗。",
+      "zone": "green",
+      "source_type": "faq",
+      "content_hash": "1c12673728bc60e3194c82f70c8920ddefaab66540f87ec61835f9caae93c3a4",
+      "keywords": [
+        "faq",
+        "文化辅助",
+        "免责",
+        "平台用途",
+        "文化参考"
+      ],
+      "expected_query": "平台用途",
+      "expected_sources": [
+        "faq-0"
+      ],
+      "public_topics": [
+        "faq",
+        "文化辅助",
+        "免责",
+        "平台用途",
+        "文化参考"
+      ]
+    },
+    {
+      "source_id": "synthetic-red-1",
+      "title": "纯合成文化档案红区演示样例",
+      "locator": "虚构流程甲",
+      "quote": "红区材料仅在本地处理，发布须独立人工复核",
+      "text": "【纯合成演示；无真实用户秘密或个人信息】虚构流程甲：红区材料仅在本地处理，发布须独立人工复核。",
+      "zone": "red",
+      "source_type": "original",
+      "content_hash": "0bd2a20dd1965f9a6313ea31f6e6f0d706dae4e7e0627ba1fe7a42a084477065",
+      "keywords": [
+        "合成红区",
+        "红区演示",
+        "虚构流程甲",
+        "独立人工复核",
+        "本地处理"
+      ],
+      "expected_query": "虚构流程甲",
+      "expected_sources": [
+        "synthetic-red-1"
+      ],
+      "public_topics": []
+    },
+    {
+      "source_id": "synthetic-red-2",
+      "title": "纯合成文化档案红区演示样例",
+      "locator": "虚构流程乙",
+      "quote": "客户端批准标志不能授权红区转绿区",
+      "text": "【纯合成演示；无真实用户秘密或个人信息】虚构流程乙：客户端批准标志不能授权红区转绿区。",
+      "zone": "red",
+      "source_type": "original",
+      "content_hash": "f6a3d01a25972833c92c44f9e8546134bf72d2bd9301d4dfc0746a43642c08f4",
+      "keywords": [
+        "合成红区",
+        "红区演示",
+        "虚构流程乙",
+        "客户端批准",
+        "红区转绿区"
+      ],
+      "expected_query": "虚构流程乙",
+      "expected_sources": [
+        "synthetic-red-2"
+      ],
+      "public_topics": []
+    },
+    {
+      "source_id": "suwen-food",
+      "title": "黄帝内经·素问",
+      "locator": "上古天真论",
+      "quote": "食饮有节",
+      "text": "《黄帝内经·素问·上古天真论》：食饮有节。",
+      "zone": "green",
+      "source_type": "public_classic",
+      "content_hash": "30c9036faff8f80c008f6a54ce446456c9ca0c4e6819fab95df7e5a2b81c287d",
+      "keywords": [
+        "食饮有节",
+        "饮食节度"
+      ],
+      "expected_query": "食饮有节",
+      "expected_sources": [
+        "suwen-food"
+      ],
+      "public_topics": [
+        "食饮有节",
+        "饮食节度"
+      ]
+    },
+    {
+      "source_id": "suwen-routine",
+      "title": "黄帝内经·素问",
+      "locator": "上古天真论",
+      "quote": "起居有常，不妄作劳",
+      "text": "《黄帝内经·素问·上古天真论》：起居有常，不妄作劳。",
+      "zone": "green",
+      "source_type": "public_classic",
+      "content_hash": "2eb70eec8864b071e2ec179591bcf45e8a65461af16003bff0016cf610913740",
+      "keywords": [
+        "起居有常",
+        "不妄作劳",
+        "起居作息"
+      ],
+      "expected_query": "起居有常",
+      "expected_sources": [
+        "suwen-routine"
+      ],
+      "public_topics": [
+        "起居有常",
+        "不妄作劳",
+        "起居作息"
+      ]
+    },
+    {
+      "source_id": "suwen-summer",
+      "title": "黄帝内经·素问",
+      "locator": "四气调神大论",
+      "quote": "夏三月，此谓蕃秀，天地气交，万物华实",
+      "text": "《黄帝内经·素问·四气调神大论》：夏三月，此谓蕃秀，天地气交，万物华实。",
+      "zone": "green",
+      "source_type": "public_classic",
+      "content_hash": "145db5242d72282dfbbfc5b531997afc6cf93daee6fc05d420a4432f8d447240",
+      "keywords": [
+        "夏三月",
+        "此谓蕃秀",
+        "夏季时序"
+      ],
+      "expected_query": "夏三月",
+      "expected_sources": [
+        "suwen-summer"
+      ],
+      "public_topics": [
+        "夏三月",
+        "此谓蕃秀",
+        "夏季时序"
+      ]
+    },
+    {
+      "source_id": "suwen-autumn",
+      "title": "黄帝内经·素问",
+      "locator": "四气调神大论",
+      "quote": "秋三月，此谓容平，天气以急，地气以明",
+      "text": "《黄帝内经·素问·四气调神大论》：秋三月，此谓容平，天气以急，地气以明。",
+      "zone": "green",
+      "source_type": "public_classic",
+      "content_hash": "bd4a526c907313d19950ac0b088620baefa6f98de8fbdb17204930468f44add4",
+      "keywords": [
+        "秋三月",
+        "此谓容平",
+        "秋季时序"
+      ],
+      "expected_query": "秋三月",
+      "expected_sources": [
+        "suwen-autumn"
+      ],
+      "public_topics": [
+        "秋三月",
+        "此谓容平",
+        "秋季时序"
+      ]
+    },
+    {
+      "source_id": "suwen-winter",
+      "title": "黄帝内经·素问",
+      "locator": "四气调神大论",
+      "quote": "冬三月，此谓闭藏，水冰地坼，无扰乎阳",
+      "text": "《黄帝内经·素问·四气调神大论》：冬三月，此谓闭藏，水冰地坼，无扰乎阳。",
+      "zone": "green",
+      "source_type": "public_classic",
+      "content_hash": "e2752fd2d9a53ebfa0cb25aab62b576f7fd50e1480af28ef133b18c218e087b4",
+      "keywords": [
+        "冬三月",
+        "此谓闭藏",
+        "冬季时序"
+      ],
+      "expected_query": "冬三月",
+      "expected_sources": [
+        "suwen-winter"
+      ],
+      "public_topics": [
+        "冬三月",
+        "此谓闭藏",
+        "冬季时序"
+      ]
+    },
+    {
+      "source_id": "suwen-seasonal",
+      "title": "黄帝内经·素问",
+      "locator": "四气调神大论",
+      "quote": "春夏养阳，秋冬养阴",
+      "text": "《黄帝内经·素问·四气调神大论》：春夏养阳，秋冬养阴。",
+      "zone": "green",
+      "source_type": "public_classic",
+      "content_hash": "4f49720453f0d78ec66f9efeb9a48e9c8301d1cac2aafc218a2d2e54fa202717",
+      "keywords": [
+        "春夏养阳",
+        "秋冬养阴",
+        "四时阴阳"
+      ],
+      "expected_query": "春夏养阳",
+      "expected_sources": [
+        "suwen-seasonal"
+      ],
+      "public_topics": [
+        "春夏养阳",
+        "秋冬养阴",
+        "四时阴阳"
+      ]
+    },
+    {
+      "source_id": "xueji-jade",
+      "title": "礼记",
+      "locator": "学记",
+      "quote": "玉不琢，不成器。人不学，不知道",
+      "text": "《礼记·学记》：玉不琢，不成器。人不学，不知道。",
+      "zone": "green",
+      "source_type": "public_classic",
+      "content_hash": "46ab9365cbf9c9f7c114bd65974d8b7b1c3ee1700fc5ae6c6fce0f12777492eb",
+      "keywords": [
+        "玉不琢",
+        "人不学",
+        "学记玉器",
+        "礼记",
+        "学记"
+      ],
+      "expected_query": "玉不琢",
+      "expected_sources": [
+        "xueji-jade"
+      ],
+      "public_topics": [
+        "玉不琢",
+        "人不学",
+        "学记玉器",
+        "礼记",
+        "学记"
+      ]
+    },
+    {
+      "source_id": "xueji-learning",
+      "title": "礼记",
+      "locator": "学记",
+      "quote": "虽有嘉肴，弗食，不知其旨也。虽有至道，弗学，不知其善也",
+      "text": "《礼记·学记》：虽有嘉肴，弗食，不知其旨也。虽有至道，弗学，不知其善也。",
+      "zone": "green",
+      "source_type": "public_classic",
+      "content_hash": "19ca09eb21193c12ed24d0e890dc4fbb49d4bac112eac225a320fd75db4d3e56",
+      "keywords": [
+        "虽有嘉肴",
+        "虽有至道",
+        "嘉肴至道",
+        "礼记",
+        "学记"
+      ],
+      "expected_query": "虽有嘉肴",
+      "expected_sources": [
+        "xueji-learning"
+      ],
+      "public_topics": [
+        "虽有嘉肴",
+        "虽有至道",
+        "嘉肴至道",
+        "礼记",
+        "学记"
+      ]
+    },
+    {
+      "source_id": "xueji-reflection",
+      "title": "礼记",
+      "locator": "学记",
+      "quote": "学然后知不足，教然后知困",
+      "text": "《礼记·学记》：学然后知不足，教然后知困。",
+      "zone": "green",
+      "source_type": "public_classic",
+      "content_hash": "6bd777b54f0616d815b9ac60fac7d10a091733043d47aace03f1d08229864ce1",
+      "keywords": [
+        "学然后知不足",
+        "教然后知困",
+        "知不足知困",
+        "礼记",
+        "学记"
+      ],
+      "expected_query": "学然后知不足",
+      "expected_sources": [
+        "xueji-reflection"
+      ],
+      "public_topics": [
+        "学然后知不足",
+        "教然后知困",
+        "知不足知困",
+        "礼记",
+        "学记"
+      ]
+    },
+    {
+      "source_id": "xueji-mutual",
+      "title": "礼记",
+      "locator": "学记",
+      "quote": "教学相长",
+      "text": "《礼记·学记》：教学相长。",
+      "zone": "green",
+      "source_type": "public_classic",
+      "content_hash": "634425b178078e7603085c330727896c13ea324c69abcb0e317e2a75dd2e20bb",
+      "keywords": [
+        "教学相长",
+        "相长之义",
+        "礼记",
+        "学记"
+      ],
+      "expected_query": "教学相长",
+      "expected_sources": [
+        "xueji-mutual"
+      ],
+      "public_topics": [
+        "教学相长",
+        "相长之义",
+        "礼记",
+        "学记"
+      ]
+    },
+    {
+      "source_id": "xueji-friends",
+      "title": "礼记",
+      "locator": "学记",
+      "quote": "独学而无友，则孤陋而寡闻",
+      "text": "《礼记·学记》：独学而无友，则孤陋而寡闻。",
+      "zone": "green",
+      "source_type": "public_classic",
+      "content_hash": "1086ab4b6df30cce206c7b081cbd95273bfa61660b1a1eddb55492fa75d53faa",
+      "keywords": [
+        "独学而无友",
+        "孤陋而寡闻",
+        "同伴学习",
+        "礼记",
+        "学记"
+      ],
+      "expected_query": "独学而无友",
+      "expected_sources": [
+        "xueji-friends"
+      ],
+      "public_topics": [
+        "独学而无友",
+        "孤陋而寡闻",
+        "同伴学习",
+        "礼记",
+        "学记"
+      ]
+    },
+    {
+      "source_id": "faq-collection",
+      "title": "模拟公开文化 FAQ（非典籍原文）",
+      "locator": "采集说明",
+      "quote": "模拟文化档案采集先说明文化主题、用途与展示渠道，再核对授权凭据；演示不采集身份资料",
+      "text": "模拟公开文化 FAQ（非典籍原文）·采集说明：模拟文化档案采集先说明文化主题、用途与展示渠道，再核对授权凭据；演示不采集身份资料。",
+      "zone": "green",
+      "source_type": "faq",
+      "content_hash": "06718722642b74dada7a2126fe108ce6e626fb7309316183f6c84a814d7fb279",
+      "keywords": [
+        "采集说明",
+        "文化档案采集"
+      ],
+      "expected_query": "采集说明",
+      "expected_sources": [
+        "faq-collection"
+      ],
+      "public_topics": [
+        "采集说明",
+        "文化档案采集"
+      ]
+    },
+    {
+      "source_id": "faq-rights",
+      "title": "模拟公开文化 FAQ（非典籍原文）",
+      "locator": "资料授权范围",
+      "quote": "模拟授权按摘录、展陈、再分发分别列明范围；持有资料不等于获准公开或转授",
+      "text": "模拟公开文化 FAQ（非典籍原文）·资料授权范围：模拟授权按摘录、展陈、再分发分别列明范围；持有资料不等于获准公开或转授。",
+      "zone": "green",
+      "source_type": "faq",
+      "content_hash": "f727a85924fd72a6c40de2976ed87241c8d46ba56c1fa4de431410a57e185f08",
+      "keywords": [
+        "资料授权范围",
+        "摘录展陈",
+        "再分发范围"
+      ],
+      "expected_query": "资料授权范围",
+      "expected_sources": [
+        "faq-rights"
+      ],
+      "public_topics": [
+        "资料授权范围",
+        "摘录展陈",
+        "再分发范围"
+      ]
+    },
+    {
+      "source_id": "faq-withdrawal",
+      "title": "模拟公开文化 FAQ（非典籍原文）",
+      "locator": "撤回说明",
+      "quote": "模拟撤回申请先暂停相关摘录展示，再核验申请依据、通知使用方并记录处置；历史引用保留撤回提示",
+      "text": "模拟公开文化 FAQ（非典籍原文）·撤回说明：模拟撤回申请先暂停相关摘录展示，再核验申请依据、通知使用方并记录处置；历史引用保留撤回提示。",
+      "zone": "green",
+      "source_type": "faq",
+      "content_hash": "353b1f307800b79bd96f796c9fc42fe0f9ffd31b17202e02df4d62dcd5f6ea7d",
+      "keywords": [
+        "撤回说明",
+        "历史引用提示"
+      ],
+      "expected_query": "撤回说明",
+      "expected_sources": [
+        "faq-withdrawal"
+      ],
+      "public_topics": [
+        "撤回说明",
+        "历史引用提示"
+      ]
+    },
+    {
+      "source_id": "edit-source",
+      "title": "模拟公开编辑规范（非典籍原文）",
+      "locator": "原文标注规范",
+      "quote": "模拟编目将典籍正文、编者说明与现代讲解分栏；摘录标明书名篇章，字形整理单列说明",
+      "text": "模拟公开编辑规范（非典籍原文）·原文标注规范：模拟编目将典籍正文、编者说明与现代讲解分栏；摘录标明书名篇章，字形整理单列说明。",
+      "zone": "green",
+      "source_type": "approved",
+      "content_hash": "86d013fb0136958297185b9c24c73349283ed72091bd263b1e1468255d22540f",
+      "keywords": [
+        "原文标注规范",
+        "正文讲解分栏",
+        "字形整理"
+      ],
+      "expected_query": "原文标注规范",
+      "expected_sources": [
+        "edit-source"
+      ],
+      "public_topics": [
+        "原文标注规范",
+        "正文讲解分栏",
+        "字形整理"
+      ]
+    },
+    {
+      "source_id": "edit-collation",
+      "title": "模拟公开编辑规范（非典籍原文）",
+      "locator": "勘校标注规范",
+      "quote": "模拟勘校并列底本与参校本字形，标明定位与取舍理由；未完成核验不得把编辑建议写成原文",
+      "text": "模拟公开编辑规范（非典籍原文）·勘校标注规范：模拟勘校并列底本与参校本字形，标明定位与取舍理由；未完成核验不得把编辑建议写成原文。",
+      "zone": "green",
+      "source_type": "approved",
+      "content_hash": "5daae4fd4e1ac21026ab5e99c2edf5c1dc5bbe8d4e785ecfce8c1f867566d3c2",
+      "keywords": [
+        "勘校标注规范",
+        "底本参校",
+        "取舍理由"
+      ],
+      "expected_query": "勘校标注规范",
+      "expected_sources": [
+        "edit-collation"
+      ],
+      "public_topics": [
+        "勘校标注规范",
+        "底本参校",
+        "取舍理由"
+      ]
+    },
+    {
+      "source_id": "edit-release",
+      "title": "模拟公开编辑规范（非典籍原文）",
+      "locator": "发布复核规范",
+      "quote": "模拟发布须分别复核引文定位、授权范围和展示内容，任一项待核即暂停发布；检索命中不表示获准发布",
+      "text": "模拟公开编辑规范（非典籍原文）·发布复核规范：模拟发布须分别复核引文定位、授权范围和展示内容，任一项待核即暂停发布；检索命中不表示获准发布。",
+      "zone": "green",
+      "source_type": "approved",
+      "content_hash": "229a79abea10326a09e6bcbe68b5233bdc4eca17e85b5ac015fced5d19903684",
+      "keywords": [
+        "发布复核规范",
+        "引文定位复核",
+        "展示内容复核"
+      ],
+      "expected_query": "发布复核规范",
+      "expected_sources": [
+        "edit-release"
+      ],
+      "public_topics": [
+        "发布复核规范",
+        "引文定位复核",
+        "展示内容复核"
+      ]
+    },
+    {
+      "source_id": "edit-version",
+      "title": "模拟公开编辑规范（非典籍原文）",
+      "locator": "版本标识规范",
+      "quote": "模拟摘录绑定文本摘要与版本标识；版本冲突先暂停沿用旧引文，完成差异复核后生成新摘录",
+      "text": "模拟公开编辑规范（非典籍原文）·版本标识规范：模拟摘录绑定文本摘要与版本标识；版本冲突先暂停沿用旧引文，完成差异复核后生成新摘录。",
+      "zone": "green",
+      "source_type": "approved",
+      "content_hash": "e50433f0cd76479ee5c2b56fa64ad976f0472acd848d779f0b43cdbe96bc562b",
+      "keywords": [
+        "版本标识规范",
+        "文本摘要",
+        "旧引文复核"
+      ],
+      "expected_query": "版本标识规范",
+      "expected_sources": [
+        "edit-version"
+      ],
+      "public_topics": [
+        "版本标识规范",
+        "文本摘要",
+        "旧引文复核"
+      ]
+    },
+    {
+      "source_id": "synthetic-red-collection",
+      "title": "纯合成文化档案红区演示样例",
+      "locator": "采集授权待核",
+      "quote": "拟采集的节俗讲述仅获展陈摘录许可，转写与再分发范围待核，底稿留在本地",
+      "text": "【纯合成演示；无真实用户秘密或个人信息】采集授权待核：拟采集的节俗讲述仅获展陈摘录许可，转写与再分发范围待核，底稿留在本地。样例对象为虚构文化片段甲；输入为模拟范围表，输出为待核清单，补齐凭据后仍须独立复核。",
+      "zone": "red",
+      "source_type": "original",
+      "content_hash": "ac474cb644fc21799160ff597eb37e7c17f23afe4cd260078211faa2426d6820",
+      "keywords": [
+        "采集授权待核",
+        "节俗讲述",
+        "转写范围待核"
+      ],
+      "expected_query": "采集授权待核",
+      "expected_sources": [
+        "synthetic-red-collection"
+      ],
+      "public_topics": []
+    },
+    {
+      "source_id": "synthetic-red-notes",
+      "title": "纯合成文化档案红区演示样例",
+      "locator": "未审编辑批注",
+      "quote": "批注建议把编者解释改为正文，引文复核尚未完成，该批注不得进入公开摘录",
+      "text": "【纯合成演示；无真实用户秘密或个人信息】未审编辑批注：批注建议把编者解释改为正文，引文复核尚未完成，该批注不得进入公开摘录。样例对象为虚构稿本乙；批注状态为待审，输出保留建议与正文分栏而不自动采纳。",
+      "zone": "red",
+      "source_type": "original",
+      "content_hash": "99aefb7a0712fd9060fd985609e858032c755fcdaf247090f9e39e98a0a4c6b3",
+      "keywords": [
+        "未审编辑批注",
+        "批注分栏",
+        "编者解释改为正文"
+      ],
+      "expected_query": "未审编辑批注",
+      "expected_sources": [
+        "synthetic-red-notes"
+      ],
+      "public_topics": []
+    },
+    {
+      "source_id": "synthetic-red-collation",
+      "title": "纯合成文化档案红区演示样例",
+      "locator": "勘校异文待定",
+      "quote": "模拟底本作甲字，参校本作乙字，定位一致但取舍理由待补，不得覆盖已发布正文",
+      "text": "【纯合成演示；无真实用户秘密或个人信息】勘校异文待定：模拟底本作甲字，参校本作乙字，定位一致但取舍理由待补，不得覆盖已发布正文。两种字形仅为占位符，不冒充典籍异文；复核输入为并列记录，输出为待定勘校单。",
+      "zone": "red",
+      "source_type": "original",
+      "content_hash": "5c78a1d1382ea9895ecc121139ab257da792b16f8e51396bcd2a45e872c518e7",
+      "keywords": [
+        "勘校异文待定",
+        "异文取舍待补",
+        "参校本作乙字"
+      ],
+      "expected_query": "勘校异文待定",
+      "expected_sources": [
+        "synthetic-red-collation"
+      ],
+      "public_topics": []
+    },
+    {
+      "source_id": "synthetic-red-scope",
+      "title": "纯合成文化档案红区演示样例",
+      "locator": "展陈许可边界",
+      "quote": "模拟授权只允许展陈摘录，不允许底稿下载或转授；导出请求超出范围，维持本地受限状态",
+      "text": "【纯合成演示；无真实用户秘密或个人信息】展陈许可边界：模拟授权只允许展陈摘录，不允许底稿下载或转授；导出请求超出范围，维持本地受限状态。样例为虚构授权片段丙；权限矩阵中展陈可复核，下载和转授均不可放行。",
+      "zone": "red",
+      "source_type": "original",
+      "content_hash": "b7334049515ff1d6e436c7fefd161660fecdab20cd2d34d4c703f5256db5a7e8",
+      "keywords": [
+        "展陈许可边界",
+        "底稿下载",
+        "转授限制"
+      ],
+      "expected_query": "展陈许可边界",
+      "expected_sources": [
+        "synthetic-red-scope"
+      ],
+      "public_topics": []
+    },
+    {
+      "source_id": "synthetic-red-revocation",
+      "title": "纯合成文化档案红区演示样例",
+      "locator": "授权撤回待核",
+      "quote": "模拟撤回凭据尚待核验，先暂停引用并建立使用方通知清单，不以客户端批准继续展示",
+      "text": "【纯合成演示；无真实用户秘密或个人信息】授权撤回待核：模拟撤回凭据尚待核验，先暂停引用并建立使用方通知清单，不以客户端批准继续展示。样例对象为虚构摘录丁；处置记录保留待核与暂停状态，不包含任何联系人。",
+      "zone": "red",
+      "source_type": "original",
+      "content_hash": "b2f8a63b4d7d8636d737b47363870ea3275ce4f6e6a5f0cd3b37a7d6f0a47a6b",
+      "keywords": [
+        "授权撤回待核",
+        "暂停引用",
+        "撤回凭据"
+      ],
+      "expected_query": "授权撤回待核",
+      "expected_sources": [
+        "synthetic-red-revocation"
+      ],
+      "public_topics": []
+    },
+    {
+      "source_id": "synthetic-red-version",
+      "title": "纯合成文化档案红区演示样例",
+      "locator": "底稿版本冲突",
+      "quote": "模拟初稿与复核稿的引文定位不一致，旧摘录标为待复核，不按较新标签直接替换",
+      "text": "【纯合成演示；无真实用户秘密或个人信息】底稿版本冲突：模拟初稿与复核稿的引文定位不一致，旧摘录标为待复核，不按较新标签直接替换。样例为虚构目录戊；输入为两份定位表，输出为差异清单与暂停发布记录。",
+      "zone": "red",
+      "source_type": "original",
+      "content_hash": "c7d3d21fc07203f048d51a7db91fd5cf606c329eca9ee29c47e2d7639b0f3b1b",
+      "keywords": [
+        "底稿版本冲突",
+        "引文定位不一致",
+        "定位表差异"
+      ],
+      "expected_query": "底稿版本冲突",
+      "expected_sources": [
+        "synthetic-red-version"
+      ],
+      "public_topics": []
+    },
+    {
+      "source_id": "synthetic-red-ocr",
+      "title": "纯合成文化档案红区演示样例",
+      "locator": "转写疑字待校",
+      "quote": "模拟扫描转写的疑字仅标为待校，不按自动识别结果修改引文；人工核对图文定位后再复核",
+      "text": "【纯合成演示；无真实用户秘密或个人信息】转写疑字待校：模拟扫描转写的疑字仅标为待校，不按自动识别结果修改引文；人工核对图文定位后再复核。样例仅使用虚构字符甲乙，不附真实扫描图；输入为疑字清单，输出为保留原位的待校标记。",
+      "zone": "red",
+      "source_type": "original",
+      "content_hash": "18ccdab3c4e9f66854ec0397564ae71085f616a82b0c9a975e35f8483132420f",
+      "keywords": [
+        "转写疑字待校",
+        "疑字清单",
+        "图文定位"
+      ],
+      "expected_query": "转写疑字待校",
+      "expected_sources": [
+        "synthetic-red-ocr"
+      ],
+      "public_topics": []
+    },
+    {
+      "source_id": "synthetic-red-caption",
+      "title": "纯合成文化档案红区演示样例",
+      "locator": "展签引用待审",
+      "quote": "模拟展签把文化讲解误排在引号内，须分离讲解与引文并复核篇章，未审展签不得转为公开证据",
+      "text": "【纯合成演示；无真实用户秘密或个人信息】展签引用待审：模拟展签把文化讲解误排在引号内，须分离讲解与引文并复核篇章，未审展签不得转为公开证据。样例为虚构展签己；输出为版式修订建议，非真实典籍解释。",
+      "zone": "red",
+      "source_type": "original",
+      "content_hash": "e6ca86a28b99dddb842b8c765bbf8e77460e8f32a91eb8792bcc42cba895d029",
+      "keywords": [
+        "展签引用待审",
+        "展签引号",
+        "版式修订建议"
+      ],
+      "expected_query": "展签引用待审",
+      "expected_sources": [
+        "synthetic-red-caption"
+      ],
+      "public_topics": []
+    },
+    {
+      "source_id": "synthetic-red-review",
+      "title": "纯合成文化档案红区演示样例",
+      "locator": "复核意见冲突",
+      "quote": "模拟引文审核通过但授权审核待补，不能合并为通过；分别保留审核状态并暂停发布",
+      "text": "【纯合成演示；无真实用户秘密或个人信息】复核意见冲突：模拟引文审核通过但授权审核待补，不能合并为通过；分别保留审核状态并暂停发布。样例对象为虚构摘录庚；输入为两类模拟意见，输出为授权待补事项，不含审核人身份。",
+      "zone": "red",
+      "source_type": "original",
+      "content_hash": "960db75758cd03a35712975d2be93758b1b1a1b1edc779d6ce37caf63efad83a",
+      "keywords": [
+        "复核意见冲突",
+        "授权审核待补",
+        "分别保留审核状态"
+      ],
+      "expected_query": "复核意见冲突",
+      "expected_sources": [
+        "synthetic-red-review"
+      ],
+      "public_topics": []
+    },
+    {
+      "source_id": "synthetic-red-derivative",
+      "title": "纯合成文化档案红区演示样例",
+      "locator": "衍生摘录下架",
+      "quote": "模拟底稿撤回后须沿引用关系定位展签与问答摘录，暂停衍生展示并记录处置，不删除核验依据",
+      "text": "【纯合成演示；无真实用户秘密或个人信息】衍生摘录下架：模拟底稿撤回后须沿引用关系定位展签与问答摘录，暂停衍生展示并记录处置，不删除核验依据。样例为虚构引用链辛；输出为衍生项清单与处置状态，不能仅隐藏底稿而继续展示衍生内容。",
+      "zone": "red",
+      "source_type": "original",
+      "content_hash": "0e2a4b282477137587bed8c7556697427152be73439f5176524f5f52dceb4fa0",
+      "keywords": [
+        "衍生摘录下架",
+        "衍生项清单",
+        "虚构引用链辛"
+      ],
+      "expected_query": "衍生摘录下架",
+      "expected_sources": [
+        "synthetic-red-derivative"
+      ],
+      "public_topics": []
+    }
+  ]
+}

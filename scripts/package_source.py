@@ -10,7 +10,7 @@ EXCLUDED = {".git", ".venv", "venv", "__pycache__", ".pytest_cache", ".mypy_cach
             "node_modules", "data", "models", "ollama", "pgdata", "qdrant_data", ".trash",
             "daobrain39-wheels", "backups"}
 SPECIAL = {".env.example", ".gitignore", ".dockerignore", "Makefile", "Dockerfile", "Dockerfile.app", "Dockerfile.offline"}
-EXTENSIONS = {".py", ".json", ".md", ".html", ".txt", ".yml", ".yaml", ".ini", ".sh", ".conf"}
+EXTENSIONS = {".py", ".json", ".md", ".html", ".txt", ".yml", ".yaml", ".ini", ".sh", ".conf", ".js", ".service"}
 
 
 def package(destination: Path):
