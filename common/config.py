@@ -54,6 +54,8 @@ class Settings(BaseSettings):
     open_reason_model: str = "qwen2.5:7b"
     open_reason_enabled: bool = True
     model_timeout_seconds: int = Field(default=60, ge=1, le=120)
+    # 保持本地模型常驻的 TTL，消除空闲后冷加载导致的 reason 503 与绿区高延迟；默认 30m 常驻。
+    model_keep_alive: str = "30m"
     model_max_output_tokens: int = Field(default=256, ge=16, le=512)
     max_requests_per_minute: int = Field(default=30, ge=1, le=1000)
 

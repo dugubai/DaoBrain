@@ -60,7 +60,7 @@ def _energy_interpretation(query: str, result, s) -> str:
                 parts.append(label)
         ev = "；".join(parts)[:600]
         prompt = energy_lens.interpretation_prompt(query, ev)
-        payload = {"model": model, "prompt": prompt, "stream": False, "keep_alive": "20s",
+        payload = {"model": model, "prompt": prompt, "stream": False, "keep_alive": s.model_keep_alive,
                    "options": {"num_predict": 160, "num_ctx": 2048, "num_batch": 8, "num_gpu": 0,
                                "use_mmap": True, "num_thread": s.model_cpu_threads,
                                "temperature": 0.5}}
@@ -198,7 +198,7 @@ def reason(env: TaskEnvelope, identity: str = Depends(require_api)):
         raise HTTPException(503, "开放推理模型配置无效")
     prompt = (energy_lens.reason_framing() + " 请以上述天干能量模型的文化视角简要作答，不得给出诊断、用药或剂量；"
               "不确定就说不确定。用中文，80字以内。\n问：" + q[:500])
-    payload = {"model": model_name, "prompt": prompt, "stream": False, "keep_alive": "20s",
+    payload = {"model": model_name, "prompt": prompt, "stream": False, "keep_alive": s.model_keep_alive,
                "options": {"num_predict": 220, "num_ctx": 4096, "num_batch": 8, "num_gpu": 0,
                            "use_mmap": True, "num_thread": s.model_cpu_threads, "temperature": 0.4}}
     try:
