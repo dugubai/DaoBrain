@@ -9,3 +9,10 @@ __pycache__/
 # secrets
 .env
 public_demo/nginx.locations.active.conf
+
+# dependency wheels (large binaries; travel in deploy package, not git)
+daobrain39-wheels/
+# generated artifacts
+source-manifest.json
+# retained pre-change nginx backups
+*.before-*

@@ -1,65 +1,32 @@
 """天干能量模型 · 解释框架 lens（v1，蒸馏版）。
 
-来源：作者提出的文化/哲学解释框架，蒸馏自候选知识库
-`author-framework-candidate-20261116-v1`（其上游为 tiangan-shuyi 数意写作规范快照）。
+核心蒸馏数据入库为 common/energy_model/distilled_stems.json，由 common.energy_lens_data
+装载并做一致性校验；本模块从该唯一真源取 STEMS 与方法论常量，只负责拼装提示文本，
+不重复维护数据、不触网、不调用生成模型；由 gateway 调用本地模型生成实际解读。
 
-定位与诚实边界（务必遵守）：
+蒸馏来源：作者提出的文化/哲学解释框架，蒸馏自候选知识库
+`author-framework-candidate-20261116-v1`（上游为 tiangan-shuyi 数意写作规范快照）。
+
+诚实边界（务必遵守）：
 - 这是"分层取数"的哲学解释视角，不是典籍逐字原文，也不是实测物理能量模型。
 - 十干各层仅收录规范已明确给出者；缺失层以 None 表示，严禁臆造补全
   （甲乙丙丁较全，戊己庚辛壬癸仅河图配对）。
 - 解读只作类比式阐发，不给人固化天干标签，需评估情境、给反例，绝不作医学诊疗/用药/剂量结论。
-
-本模块只产出提示文本与速查数据，不做任何网络或生成调用；由 gateway 调用本地模型生成实际解读。
 """
 from __future__ import annotations
 
-# --- 十干速查：仅已核验层；缺层留 None，渲染为「—」，不得编造 ---
-STEMS = {
-    "甲": {"ordinal": "一", "hetu": "三(天三·初动)", "xiantian": "乾一", "houtian": "震三",
-           "dayan": "九", "archetype": "破壳立机、资始首出"},
-    "乙": {"ordinal": "二", "hetu": "八(地八·成形)", "xiantian": "兑", "houtian": "巽",
-           "dayan": "八", "archetype": "得地而伸、入形而行"},
-    "丙": {"ordinal": "三", "hetu": "七(天七·外著)", "xiantian": "离", "houtian": "离九",
-           "dayan": "七", "archetype": "承阳成象、炳然外著、盛中伏转"},
-    "丁": {"ordinal": "四", "hetu": "二(地二·内养)", "xiantian": "乾一", "houtian": "离九",
-           "dayan": "六", "archetype": "盛后收定、外护内营"},
-    "戊": {"ordinal": "五", "hetu": "五(天五·生数/发动)", "archetype": None},
-    "己": {"ordinal": "六", "hetu": "十(地十·成数/承载)", "archetype": None},
-    "庚": {"ordinal": "七", "hetu": "九(天九·老阳/刚成)", "archetype": None},
-    "辛": {"ordinal": "八", "hetu": "四(地四·少阴/柔定)", "archetype": None},
-    "壬": {"ordinal": "九", "hetu": "一(天一·阳水/初动)", "archetype": None},
-    "癸": {"ordinal": "十", "hetu": "六(地六·阴水/已成)", "archetype": None},
-}
-
-_STEM_ORDER = "甲乙丙丁戊己庚辛壬癸"
-
-# --- 方法论：分层取数，不可执一 ---
-LAYER_PRINCIPLE = (
-    "数意不是给天干配一个固定数，而是不同数术体系对同一能量原型的分层取数："
-    "序位、河图、先天卦、后天卦、大衍各取一层——"
-    "先天卦数论此干『是什么』的本体未发之根据，后天卦数论此干『怎么运行』的已发之法则；"
-    "各家所取层面不同，不是此干本体反复变换，更不可把这些层合并成一个死数。"
+from common.energy_lens_data import (
+    APPLICATION_RULES,
+    INTERPRETATION_DISCLAIMER,
+    INTERPRETATION_LABEL,
+    LAYER_PRINCIPLE,
+    ONTOLOGY,
+    STEMS,
+    STEM_ORDER,
 )
 
-# --- 宇宙生成观（道长课件框架）---
-ONTOLOGY = (
-    "生成次第：太虚（未见气）→太初（始见气）→太始（始见形）→太素（有形有质）；"
-    "『一』为有形无形之分界，『二』为元气初分（轻清者阳、重浊者阴），"
-    "『三』为天地人三级能量流转、『三生万物』之成象位；七为少阳之数，生机正旺而未极。"
-)
-
-# --- 应用纪律（源自候选库 editorial_limits，硬约束）---
-APPLICATION_RULES = (
-    "就事论事作类比阐发；不得按职业、年龄或身份给人固化天干标签，须评估情境适用性、"
-    "给出反例与替代解释，不预设所有领域皆适用；这是文化与哲学解释框架，"
-    "不替代医学诊疗、法律、财务、工程安全或经验数据；凡涉及诊断、用药、剂量、疗效，"
-    "一律不作任何医疗结论。"
-)
-
-INTERPRETATION_LABEL = "能量模型解读"
-INTERPRETATION_DISCLAIMER = (
-    "（天干能量模型是作者提出的文化/哲学解释框架，未经典籍语料核验，不替代执业医师诊疗。）"
-)
+# 十干展示顺序由蒸馏数据定义；保留旧内部名以兼容既有引用。
+_STEM_ORDER = STEM_ORDER
 
 
 def table_text() -> str:
@@ -99,6 +66,7 @@ def reason_framing() -> str:
 # 只保留已核验层，并强制：单一取干 + 声明层面 + 引用该干已核验取象为依据 + 给出相应之理；
 # 严禁把多个数层并成一个死数（混层）、严禁为戊己庚辛壬癸臆造能量原型。结构化且精简，
 # 既让天干取象稳定生效，又把 CPU(qwen2.5:7b, num_gpu=0)预填充延迟压到数十秒内，消除 reason 503。
+# 本视图与 common/energy_model/distilled_stems.json 的取象须保持一致（tests/test_energy_lens_data.py 校验）。
 _INTERP_FRAME = (
     "【天干能量模型·分层取象（仅已核验层）】\n"
     "甲|序一|河图三天·初动|原型[破壳立机·资始首出];\n"
