@@ -48,6 +48,7 @@ def main():
             require(not relative.name.startswith('.env') or str(relative) == '.env.example', '禁止分发实际.env')
             require(relative.name != 'nginx.locations.active.conf' and '.bak' not in relative.name
                     and '.before-' not in relative.name, '禁止分发动态配置或备份')
+            require(not relative.name.startswith('._') and relative.name != '.DS_Store', '禁止分发包元数据')
             target = ROOT / relative
             require(not any(p.is_symlink() for p in [target, *target.parents]), '安装路径含链接')
             data = archive.read(name)

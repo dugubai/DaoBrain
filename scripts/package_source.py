@@ -28,6 +28,8 @@ def package(destination: Path):
         if (path.name == "nginx.locations.active.conf" or ".bak" in path.name
                 or ".before-" in path.name or path.name.startswith(".nginx.locations.")):
             continue
+        if path.name.startswith("._") or path.name == ".DS_Store":
+            continue
         if path.suffix not in EXTENSIONS and path.name not in SPECIAL:
             continue
         if path.name == "requirements.txt" or path.suffix in EXTENSIONS or path.name in SPECIAL:

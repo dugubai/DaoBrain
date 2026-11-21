@@ -16,3 +16,7 @@ daobrain39-wheels/
 source-manifest.json
 # retained pre-change nginx backups
 *.before-*
+
+# macOS AppleDouble / folder metadata junk
+._*
+.DS_Store
