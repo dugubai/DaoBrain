@@ -23,6 +23,8 @@ def package(destination: Path):
             continue
         if path.name.startswith(".env") and path.name != ".env.example":
             continue
+        if path.name == "source-manifest.json":
+            continue
         if (path.name == "nginx.locations.active.conf" or ".bak" in path.name
                 or ".before-" in path.name or path.name.startswith(".nginx.locations.")):
             continue
