@@ -190,6 +190,8 @@ def reason(env: TaskEnvelope, identity: str = Depends(require_api)):
     q = (env.query or "").strip()
     if _MEDICAL.search(q):
         return _redline_refuse("涉及诊断或用药等诊疗内容，模型不予推理作答。", "诊疗类请求，推理层据实拒答")
+    if observe.sensitive_hit(q):
+        return _redline_refuse("涉及隐私、凭证或外链等敏感信息，推理层不予作答。", "敏感信息请求，推理层据实拒答")
 
     model_name = s.open_reason_model or s.local_model_name
     if not model_name or len(model_name) > 128:
@@ -217,6 +219,8 @@ def reason(env: TaskEnvelope, identity: str = Depends(require_api)):
             raise ValueError("bad model output")
         if _MEDICAL.search(text):
             return _redline_refuse("模型推理触及诊疗表述，已据实拦下，未交付。", "推理答案含诊疗/剂量表述")
+        if observe.sensitive_hit(text):
+            return _redline_refuse("模型推理输出触及隐私/凭证/外链等敏感表述，已据实拦下，未交付。", "推理答案含敏感/隐私信息")
         answer_text = _reason_disclaimer(model_name) + "\n" + text.strip()
         _emit(start, env, channel="local", route_target=s.ollama_url, verify="revise",
               released=True, outcome="reason", model="ollama:" + model_name, answer=answer_text)
