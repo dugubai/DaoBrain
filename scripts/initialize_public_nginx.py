@@ -3,6 +3,7 @@
 管理员显式执行sudo python3 scripts/initialize_public_nginx.py。已有include交给刷新脚本。
 备份当前站点而非依赖旧快照；未点名站点字节保持不变，nginx -t失败恢复不重载。
 """
+import os
 from datetime import datetime
 import hashlib
 from pathlib import Path
@@ -12,11 +13,11 @@ import uuid
 
 from refresh_public_upstream import public_address, render
 
-ROOT = Path('/root/DaoBrain')
+ROOT = Path(os.environ.get('DAOBRAIN_HOME', '/home/admin/DaoBrain'))
 SITE = Path('/etc/nginx/conf.d/zjg.conf')
 RATE = Path('/etc/nginx/conf.d/daobrain-public-rate.conf')
 ACTIVE = ROOT / 'public_demo/nginx.locations.active.conf'
-INCLUDE = 'include /root/DaoBrain/public_demo/nginx.locations.active.conf;\n\n'
+INCLUDE = 'include ' + str(ROOT / 'public_demo/nginx.locations.active.conf') + ';\n\n'
 NEEDLE = '# ===== 子目录反向代理 ====='
 
 

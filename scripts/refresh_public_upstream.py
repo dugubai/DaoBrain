@@ -16,7 +16,7 @@ import subprocess
 import sys
 import uuid
 
-ROOT = Path("/root/DaoBrain")
+ROOT = Path(os.environ.get("DAOBRAIN_HOME", "/home/admin/DaoBrain"))
 TEMPLATE = ROOT / "public_demo/nginx.locations.conf"
 ACTIVE = ROOT / "public_demo/nginx.locations.active.conf"
 SITE = Path("/etc/nginx/conf.d/zjg.conf")
